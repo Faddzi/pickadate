@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>pick our day</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT@9..144,500..800,0..100&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --cream: #f5efdf;
+      --paper: #fffdf8;
+      --paper-warm: #f8efd8;
+      --ink: #35291f;
+      --muted-ink: #786c60;
+      --saffron: #f4c84a;
+      --red: #e14f47;
+      --pink: #efc8c1;
+      --sage: #aebda4;
+      --line: rgba(53, 41, 31, 0.15);
+      --shadow: 0 18px 45px rgba(72, 54, 37, 0.13);
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(255,255,255,.45) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 70% 40%, rgba(70,50,30,.05) 0 1px, transparent 1.5px),
+        linear-gradient(135deg, rgba(255,255,255,.25), transparent 45%),
+        var(--cream);
+      background-size: 19px 21px, 31px 29px, auto, auto;
+      font-family: "DM Sans", sans-serif;
+      overflow-x: hidden;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    button:focus-visible {
+      outline: 3px solid var(--red);
+      outline-offset: 4px;
+    }
+
+    .app {
+      width: min(1400px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    /* HEADER */
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 43px;
+      height: 43px;
+      position: relative;
+      flex: 0 0 auto;
+    }
+
+    .brand-sun {
+      position: absolute;
+      width: 23px;
+      height: 23px;
+      background: var(--saffron);
+      border-radius: 50%;
+      top: 7px;
+      left: 10px;
+    }
+
+    .brand-heart {
+      position: absolute;
+      width: 19px;
+      height: 17px;
+      background: var(--red);
+      transform: rotate(-45deg);
+      left: 12px;
+      bottom: 5px;
+      border-radius: 3px 0 3px 3px;
+    }
+
+    .brand-heart::before,
+    .brand-heart::after {
+      content: "";
+      position: absolute;
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      background: var(--red);
+    }
+
+    .brand-heart::before {
+      top: -9px;
+      left: 0;
+    }
+
+    .brand-heart::after {
+      left: 9px;
+      top: 0;
+    }
+
+    .brand-orbit {
+      position: absolute;
+      inset: 2px 0 4px;
+      border: 1.5px solid var(--ink);
+      border-radius: 50%;
+      transform: rotate(-25deg);
+      opacity: .7;
+    }
+
+    .brand-name {
+      font-family: "Fraunces", serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -.04em;
+    }
+
+    .helper {
+      font-size: .66rem;
+      letter-spacing: .18em;
+      font-weight: 700;
+      color: var(--muted-ink);
+    }
+
+    /* MAIN LAYOUT */
+
+    .planner-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(330px, .72fr);
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* PROGRESS */
+
+    .progress {
+      display: flex;
+      gap: 26px;
+      margin: 0 0 15px 18px;
+      flex-wrap: wrap;
+    }
+
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #8c8074;
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+    }
+
+    .progress-dot {
+      width: 19px;
+      height: 19px;
+      border: 1.5px solid rgba(53,41,31,.22);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: .72rem;
+      background: var(--cream);
+      transition: .2s var(--ease);
+    }
+
+    .progress-step.active {
+      color: var(--ink);
+    }
+
+    .progress-step.active .progress-dot {
+      background: var(--saffron);
+      border-color: var(--saffron);
+    }
+
+    .progress-step.complete .progress-dot {
+      background: var(--ink);
+      color: white;
+      border-color: var(--ink);
+    }
+
+    /* MAIN PAPER */
+
+    .paper {
+      position: relative;
+      min-height: 710px;
+      padding: clamp(30px, 5vw, 62px);
+      background:
+        linear-gradient(rgba(255,255,255,.78), rgba(255,253,248,.92)),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 31px,
+          rgba(88,67,46,.025) 32px
+        );
+      box-shadow: var(--shadow);
+      transform: rotate(-.55deg);
+      clip-path: polygon(
+        0 0.5%,
+        99.8% 0,
+        100% 99.2%,
+        0.5% 100%,
+        0 70%,
+        .2% 35%
+      );
+      isolation: isolate;
+    }
+
+    .paper::before {
+      content: "";
+      position: absolute;
+      width: 135px;
+      height: 30px;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          rgba(255,255,255,.2) 0 8px,
+          rgba(255,255,255,.55) 8px 15px
+        ),
+        var(--saffron);
+      top: -12px;
+      right: 14%;
+      transform: rotate(3deg);
+      opacity: .92;
+      box-shadow: 0 3px 8px rgba(60,45,25,.1);
+      z-index: -1;
+    }
+
+    .paper::after {
+      content: "✦";
+      position: absolute;
+      right: 35px;
+      top: 36px;
+      color: var(--red);
+      font-size: 1.3rem;
+      transform: rotate(13deg);
+    }
+
+    .stage {
+      display: none;
+      animation: stageIn .38s var(--ease) both;
+    }
+
+    .stage.active {
+      display: block;
+    }
+
+    @keyframes stageIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .eyebrow {
+      font-size: .67rem;
+      letter-spacing: .18em;
+      font-weight: 700;
+      color: var(--red);
+      margin-bottom: 16px;
+    }
+
+    .headline {
+      margin: 0;
+      max-width: 650px;
+      font-family: "Fraunces", serif;
+      font-size: clamp(2.35rem, 5vw, 4.75rem);
+      line-height: .98;
+      letter-spacing: -.06em;
+    }
+
+    .headline em {
+      color: var(--red);
+      font-style: italic;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    .headline em::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -5px;
+      height: 7px;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      transform: rotate(-1deg);
+      opacity: .7;
+    }
+
+    .supporting {
+      margin: 22px 0 30px;
+      max-width: 570px;
+      color: var(--muted-ink);
+      font-size: .98rem;
+      line-height: 1.7;
+    }
+
+    /* CALENDAR */
+
+    .calendar-wrap {
+      max-width: 640px;
+      padding: 20px;
+      background: rgba(255,253,248,.88);
+      border: 1px solid rgba(53,41,31,.1);
+      box-shadow: 6px 8px 0 rgba(53,41,31,.055);
+      transform: rotate(.2deg);
+    }
+
+    .calendar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .calendar-month {
+      font-family: "Fraunces", serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -.03em;
+    }
+
+    .month-controls {
+      display: flex;
+      gap: 7px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: var(--paper);
+      cursor: pointer;
+      transition: transform .18s var(--ease), background .18s;
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      background: var(--saffron);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .weekday {
+      text-align: center;
+      font-size: .62rem;
+      color: #978a7c;
+      font-weight: 700;
+      padding-bottom: 5px;
+    }
+
+    .calendar-day {
+      position: relative;
+      min-height: 48px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      border-radius: 12px 8px 13px 9px;
+      transition: transform .18s var(--ease);
+      z-index: 0;
+    }
+
+    .calendar-day:hover {
+      transform: translateY(-2px);
+    }
+
+    .calendar-day.empty {
+      pointer-events: none;
+    }
+
+    .calendar-day.selected {
+      font-weight: 700;
+    }
+
+    .calendar-day.selected::before {
+      content: "";
+      position: absolute;
+      width: 40px;
+      height: 38px;
+      background: var(--saffron);
+      border-radius: 46% 54% 52% 45%;
+      transform: rotate(-7deg);
+      z-index: -1;
+      box-shadow: 2px 3px 0 rgba(180,130,20,.15);
+    }
+
+    .date-note-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 17px;
+    }
+
+    .hand-note {
+      font-family: "Caveat", cursive;
+      font-size: 1.38rem;
+      line-height: 1;
+      transform: rotate(-2deg);
+    }
+
+    .tiny-note {
+      font-family: "Caveat", cursive;
+      color: var(--red);
+      font-size: 1.15rem;
+      transform: rotate(2deg);
+    }
+
+    /* BUTTONS */
+
+    .stage-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-top: 34px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      border: 0;
+      cursor: pointer;
+      transition: transform .18s var(--ease), box-shadow .18s var(--ease);
+    }
+
+    .primary-btn {
+      padding: 14px 22px;
+      background: var(--ink);
+      color: white;
+      border-radius: 6px 9px 7px 5px;
+      font-weight: 700;
+      box-shadow: 4px 5px 0 rgba(53,41,31,.13);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 5px 7px 0 rgba(53,41,31,.13);
+    }
+
+    .primary-btn.red {
+      background: var(--red);
+    }
+
+    .secondary-btn {
+      background: transparent;
+      color: var(--muted-ink);
+      padding: 12px 4px;
+      font-size: .9rem;
+    }
+
+    .secondary-btn:hover {
+      color: var(--ink);
+      transform: translateX(-2px);
+    }
+
+    .primary-btn:active,
+    .secondary-btn:active,
+    .choice-card:active,
+    .rule-choice:active,
+    .calendar-day:active {
+      transform: scale(.97);
+    }
+
+    /* STAGE 2 */
+
+    .group-title {
+      margin: 28px 0 12px;
+      font-size: .68rem;
+      letter-spacing: .14em;
+      font-weight: 700;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 11px;
+    }
+
+    .activity-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .choice-card {
+      position: relative;
+      min-height: 77px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      padding: 13px 14px;
+      border: 1px solid rgba(53,41,31,.12);
+      border-radius: 10px 7px 11px 8px;
+      background: rgba(255,255,255,.48);
+      cursor: pointer;
+      color: var(--ink);
+      transition:
+        transform .18s var(--ease),
+        box-shadow .18s var(--ease),
+        border-color .18s,
+        background .18s;
+    }
+
+    .choice-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 3px 4px 0 rgba(53,41,31,.06);
+    }
+
+    .choice-card.selected {
+      background: var(--paper-warm);
+      border: 2px solid var(--red);
+      box-shadow: 4px 5px 0 rgba(225,79,71,.16);
+    }
+
+    .choice-emoji {
+      font-size: 1.45rem;
+      flex: 0 0 auto;
+    }
+
+    .choice-label {
+      font-size: .9rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .choice-check {
+      position: absolute;
+      width: 19px;
+      height: 19px;
+      right: 8px;
+      top: 8px;
+      display: none;
+      place-items: center;
+      background: var(--red);
+      color: white;
+      border-radius: 50%;
+      font-size: .65rem;
+    }
+
+    .choice-card.selected .choice-check {
+      display: grid;
+    }
+
+    /* STAGE 3 */
+
+    .rules {
+      display: grid;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .rule-choice {
+      position: relative;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 35px 1fr auto;
+      align-items: center;
+      gap: 13px;
+      padding: 15px 17px;
+      border: 1px solid rgba(53,41,31,.12);
+      background: rgba(255,255,255,.45);
+      border-radius: 8px 13px 7px 11px;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      transition: transform .18s var(--ease), background .18s, border .18s;
+    }
+
+    .rule-choice:hover {
+      transform: translateX(2px);
+    }
+
+    .rule-choice.selected {
+      background: var(--paper-warm);
+      border: 2px solid var(--red);
+      box-shadow: 4px 4px 0 rgba(225,79,71,.11);
+    }
+
+    .rule-number {
+      font-size: .7rem;
+      font-weight: 700;
+      color: var(--red);
+    }
+
+    .rule-label {
+      font-weight: 600;
+      font-size: .9rem;
+    }
+
+    .rule-check {
+      width: 21px;
+      height: 21px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: transparent;
+    }
+
+    .rule-choice.selected .rule-check {
+      background: var(--red);
+      border-color: var(--red);
+      color: white;
+    }
+
+    .mission-preview {
+      margin-top: 24px;
+      padding: 17px 20px;
+      background: #fff9e8;
+      border-left: 4px solid var(--saffron);
+      transform: rotate(-.6deg);
+    }
+
+    .mission-preview small {
+      display: block;
+      font-family: "Caveat", cursive;
+      color: var(--red);
+      font-size: 1.15rem;
+      margin-bottom: 3px;
+    }
+
+    .mission-preview p {
+      margin: 0;
+      font-family: "Caveat", cursive;
+      font-size: 1.4rem;
+    }
+
+    /* RECEIPT */
+
+    .receipt-zone {
+      position: sticky;
+      top: 24px;
+      min-height: 690px;
+      padding: 24px 24px 50px;
+    }
+
+    .receipt {
+      position: relative;
+      z-index: 3;
+      padding: 42px 30px 55px;
+      background: #fffdf5;
+      box-shadow: 12px 18px 30px rgba(73,53,33,.13);
+      transform: rotate(3.2deg);
+      clip-path: polygon(
+        0 0,
+        100% .4%,
+        99.7% 96%,
+        96% 100%,
+        91% 97%,
+        86% 100%,
+        81% 97%,
+        76% 100%,
+        71% 97%,
+        66% 100%,
+        61% 97%,
+        56% 100%,
+        51% 97%,
+        46% 100%,
+        41% 97%,
+        36% 100%,
+        31% 97%,
+        26% 100%,
+        21% 97%,
+        16% 100%,
+        11% 97%,
+        6% 100%,
+        0 96%
+      );
+    }
+
+    .receipt-tape {
+      position: absolute;
+      width: 104px;
+      height: 26px;
+      top: -12px;
+      left: 45%;
+      background:
+        repeating-linear-gradient(
+          -45deg,
+          rgba(255,255,255,.35) 0 7px,
+          transparent 7px 14px
+        ),
+        var(--saffron);
+      transform: rotate(-6deg);
+      opacity: .9;
+    }
+
+    .receipt-title {
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      padding-bottom: 16px;
+      border-bottom: 1px dashed rgba(53,41,31,.3);
+    }
+
+    .receipt-date {
+      font-family: "Fraunces", serif;
+      font-size: 1.9rem;
+      letter-spacing: -.05em;
+      margin: 22px 0 24px;
+    }
+
+    .receipt-item {
+      margin: 18px 0;
+    }
+
+    .receipt-item span {
+      display: block;
+      font-size: .61rem;
+      letter-spacing: .15em;
+      font-weight: 700;
+      color: #978a7c;
+      margin-bottom: 5px;
+    }
+
+    .receipt-item strong {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .receipt-bottom {
+      margin-top: 27px;
+      padding-top: 21px;
+      border-top: 1px dashed rgba(53,41,31,.3);
+      font-family: "Caveat", cursive;
+      font-size: 1.32rem;
+      line-height: 1.1;
+    }
+
+    .side-note {
+      position: absolute;
+      z-index: 4;
+      right: -4px;
+      top: 58%;
+      width: 170px;
+      color: var(--red);
+      font-family: "Caveat", cursive;
+      font-size: 1.25rem;
+      line-height: 1;
+      transform: rotate(-9deg);
+    }
+
+    /* DECORATIONS */
+
+    .polaroid {
+      position: absolute;
+      z-index: 1;
+      width: 170px;
+      height: 195px;
+      background: white;
+      padding: 12px;
+      bottom: 32px;
+      left: 5px;
+      transform: rotate(-8deg);
+      box-shadow: 7px 8px 15px rgba(53,41,31,.12);
+    }
+
+    .polaroid-inner {
+      height: 135px;
+      border: 1.5px dashed rgba(53,41,31,.2);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(244,200,74,.13), transparent 42%),
+        #faf6ec;
+    }
+
+    .paper-heart {
+      position: absolute;
+      z-index: 2;
+      width: 45px;
+      height: 45px;
+      background: var(--pink);
+      right: 30px;
+      bottom: 54px;
+      transform: rotate(-45deg);
+      box-shadow: 3px 4px 0 rgba(53,41,31,.08);
+    }
+
+    .paper-heart::before,
+    .paper-heart::after {
+      content: "";
+      position: absolute;
+      width: 45px;
+      height: 45px;
+      background: inherit;
+      border-radius: 50%;
+    }
+
+    .paper-heart::before {
+      top: -22px;
+      left: 0;
+    }
+
+    .paper-heart::after {
+      top: 0;
+      left: 22px;
+    }
+
+    .sun-doodle {
+      position: absolute;
+      right: 34px;
+      bottom: 170px;
+      z-index: 1;
+      color: var(--saffron);
+      font-size: 3.4rem;
+      transform: rotate(18deg);
+    }
+
+    .stickers {
+      position: absolute;
+      z-index: 2;
+      bottom: 8px;
+      right: 2px;
+      font-size: 2rem;
+      transform: rotate(9deg);
+      letter-spacing: 5px;
+    }
+
+    .flower {
+      position: absolute;
+      z-index: 2;
+      top: 20%;
+      left: -5px;
+      font-size: 2rem;
+      transform: rotate(-15deg);
+    }
+
+    /* FINAL TICKET */
+
+    .final-paper {
+      min-height: 710px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      box-shadow: none;
+      padding: 20px;
+      transform: none;
+      clip-path: none;
+    }
+
+    .final-paper.active {
+      display: flex;
+      animation: stageIn .38s var(--ease) both;
+    }
+
+    .ticket {
+      width: 100%;
+      max-width: 650px;
+      position: relative;
+      overflow: hidden;
+      padding: clamp(40px, 7vw, 72px) clamp(28px, 6vw, 65px);
+      text-align: center;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.12) 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 70%, rgba(0,0,0,.06) 0 1px, transparent 2px),
+        var(--red);
+      color: white;
+      box-shadow: 14px 18px 35px rgba(110,35,30,.18);
+      clip-path: polygon(
+        0 0,
+        100% 0,
+        100% 6%,
+        98% 8%,
+        100% 10%,
+        100% 18%,
+        98% 20%,
+        100% 22%,
+        100% 30%,
+        98% 32%,
+        100% 34%,
+        100% 42%,
+        98% 44%,
+        100% 46%,
+        100% 54%,
+        98% 56%,
+        100% 58%,
+        100% 66%,
+        98% 68%,
+        100% 70%,
+        100% 78%,
+        98% 80%,
+        100% 82%,
+        100% 90%,
+        98% 92%,
+        100% 94%,
+        100% 100%,
+        0 100%,
+        0 94%,
+        2% 92%,
+        0 90%,
+        0 82%,
+        2% 80%,
+        0 78%,
+        0 70%,
+        2% 68%,
+        0 66%,
+        0 58%,
+        2% 56%,
+        0 54%,
+        0 46%,
+        2% 44%,
+        0 42%,
+        0 34%,
+        2% 32%,
+        0 30%,
+        0 22%,
+        2% 20%,
+        0 18%,
+        0 10%,
+        2% 8%,
+        0 6%
+      );
+    }
+
+    .ticket::before,
+    .ticket::after {
+      content: "";
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 50%;
+    }
+
+    .ticket::before {
+      top: -80px;
+      left: -80px;
+    }
+
+    .ticket::after {
+      right: -80px;
+      bottom: -80px;
+    }
+
+    .ticket-filed {
+      font-size: .64rem;
+      letter-spacing: .18em;
+      font-weight: 700;
+      opacity: .86;
+    }
+
+    .lock-stamp {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      display: grid;
+      place-items: center;
+      margin: 20px auto;
+      border-radius: 50%;
+      background: var(--saffron);
+      color: var(--ink);
+      font-size: 1.9rem;
+      transform: rotate(-8deg);
+      box-shadow: 3px 4px 0 rgba(70,30,25,.2);
+      animation: stampPop .45s var(--ease) both;
+    }
+
+    @keyframes stampPop {
+      from {
+        transform: scale(.95) rotate(-12deg);
+      }
+
+      to {
+        transform: scale(1) rotate(-8deg);
+      }
+    }
+
+    .ticket-title {
+      margin: 0;
+      font-family: "Fraunces", serif;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      line-height: .9;
+      letter-spacing: -.06em;
+    }
+
+    .ticket-date {
+      margin: 18px 0 8px;
+      font-family: "Fraunces", serif;
+      font-size: clamp(1.45rem, 4vw, 2.15rem);
+    }
+
+    .ticket-vibe {
+      font-family: "Caveat", cursive;
+      font-size: 1.55rem;
+    }
+
+    .ticket-itinerary {
+      margin: 32px auto;
+      padding: 17px 10px;
+      border-top: 1px dashed rgba(255,255,255,.55);
+      border-bottom: 1px dashed rgba(255,255,255,.55);
+      font-size: .98rem;
+      line-height: 1.8;
+    }
+
+    .ticket-section {
+      margin-top: 24px;
+      font-size: .64rem;
+      letter-spacing: .14em;
+      font-weight: 700;
+    }
+
+    .ticket-mission {
+      margin: 8px auto 0;
+      max-width: 420px;
+      font-family: "Caveat", cursive;
+      font-size: 1.65rem;
+      line-height: 1.05;
+    }
+
+    .participants {
+      margin-top: 7px;
+      font-family: "Fraunces", serif;
+      font-size: 1.25rem;
+    }
+
+    .non-refundable {
+      margin-top: 35px;
+      font-size: .68rem;
+      letter-spacing: .12em;
+      font-weight: 700;
+    }
+
+    .restart {
+      margin-top: 22px;
+      border: 0;
+      background: transparent;
+      color: white;
+      font-family: "Caveat", cursive;
+      font-size: 1.35rem;
+      cursor: pointer;
+      opacity: .9;
+      transition: transform .18s var(--ease);
+    }
+
+    .restart:hover {
+      transform: rotate(-2deg) translateY(-2px);
+    }
+
+    /* FOOTER */
+
+    .footer {
+      margin-top: 26px;
+      text-align: center;
+      font-family: "Caveat", cursive;
+      font-size: 1.25rem;
+      color: var(--muted-ink);
+      transform: rotate(-1deg);
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 980px) {
+      .planner-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .receipt-zone {
+        position: relative;
+        top: auto;
+        width: min(500px, 100%);
+        margin: 0 auto;
+        min-height: 570px;
+      }
+
+      .paper {
+        min-height: auto;
+      }
+
+      .final-paper {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .app {
+        width: min(100% - 24px, 1400px);
+        padding-top: 18px;
+      }
+
+      .helper {
+        display: none;
+      }
+
+      .site-header {
+        margin-bottom: 20px;
+      }
+
+      .progress {
+        gap: 12px;
+        margin-left: 3px;
+      }
+
+      .progress-step {
+        font-size: .57rem;
+        letter-spacing: .06em;
+      }
+
+      .progress-step:nth-child(2) {
+        max-width: 115px;
+      }
+
+      .paper {
+        padding: 30px 20px;
+      }
+
+      .headline {
+        font-size: clamp(2.25rem, 12vw, 3.4rem);
+      }
+
+      .calendar-wrap {
+        padding: 13px 8px;
+      }
+
+      .calendar-day {
+        min-height: 42px;
+      }
+
+      .date-note-row {
+        align-items: flex-start;
+      }
+
+      .activity-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .choice-card {
+        min-height: 72px;
+      }
+
+      .stage-actions {
+        margin-top: 28px;
+      }
+
+      .receipt-zone {
+        padding: 10px 18px 40px;
+      }
+
+      .receipt {
+        padding: 38px 25px 55px;
+      }
+
+      .side-note {
+        right: 5px;
+        top: 59%;
+      }
+
+      .polaroid {
+        width: 140px;
+        height: 165px;
+      }
+
+      .polaroid-inner {
+        height: 112px;
+      }
+
+      .paper-heart {
+        right: 22px;
+      }
+
+      .rule-choice {
+        padding: 13px;
+        grid-template-columns: 28px 1fr auto;
+      }
+
+      .ticket {
+        padding: 45px 25px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+
+    <header class="site-header">
+      <div class="brand" aria-label="Pick Our Day">
+        <div class="brand-mark" aria-hidden="true">
+          <span class="brand-orbit"></span>
+          <span class="brand-sun"></span>
+          <span class="brand-heart"></span>
+        </div>
+        <span class="brand-name">pick our day</span>
+      </div>
+
+      <div class="helper">A LITTLE PLAN FOR TWO</div>
+    </header>
+
+    <div class="planner-layout">
+
+      <section class="planner">
+
+        <div class="progress" aria-label="Planning progress">
+          <div class="progress-step active" data-progress="1">
+            <span class="progress-dot">1</span>
+            <span>PICK A DAY</span>
+          </div>
+
+          <div class="progress-step" data-progress="2">
+            <span class="progress-dot">2</span>
+            <span>CHOOSE YOUR MOOD</span>
+          </div>
+
+          <div class="progress-step" data-progress="3">
+            <span class="progress-dot">3</span>
+            <span>ADD A RULE</span>
+          </div>
+        </div>
+
+        <div class="paper">
+
+          <!-- STAGE 1 -->
+
+          <section class="stage active" data-stage="1">
+
+            <div class="eyebrow">FIRST THINGS FIRST</div>
+
+            <h1 class="headline">
+              <s></s>o… when are you<br />
+              <em>stealing me?</em>
+            </h1>
+
+            <p class="supporting">
+              find a day with our names on it. I’ll bring the excellent company.
+            </p>
+
+            <div class="calendar-wrap">
+              <div class="calendar-top">
+                <div class="calendar-month" id="calendarMonth"></div>
+
+                <div class="month-controls">
+                  <button class="icon-btn" id="prevMonth" aria-label="Previous month">
+                    ←
+                  </button>
+
+                  <button class="icon-btn" id="nextMonth" aria-label="Next month">
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div class="calendar-grid" id="calendar"></div>
+
+              <div class="date-note-row">
+                <div class="hand-note" id="selectedDateNote"></div>
+                <div class="tiny-note">make it a good one ✦</div>
+              </div>
+            </div>
+
+            <div class="stage-actions">
+              <span></span>
+
+              <button class="primary-btn" id="toStage2">
+                Put it in ink →
+              </button>
+            </div>
+
+          </section>
+
+          <!-- STAGE 2 -->
+
+          <section class="stage" data-stage="2">
+
+            <div class="eyebrow">THE FUN PART</div>
+
+            <h2 class="headline">
+              Okay. It’s official.<br />
+              <em>Pick our flavour of fun.</em>
+            </h2>
+
+            <p class="supporting">
+              No wrong answers. Except perhaps ‘doing nothing.’
+            </p>
+
+            <div class="group-title">01 &nbsp; OUR VIBE</div>
+
+            <div class="choice-grid" id="vibeChoices"></div>
+
+            <div class="group-title">02 &nbsp; OUR MAIN THING</div>
+
+            <div class="choice-grid activity-grid" id="activityChoices"></div>
+
+            <div class="stage-actions">
+              <button class="secondary-btn" id="backToStage1">
+                ← Change day
+              </button>
+
+              <button class="primary-btn" id="toStage3">
+                One last thing →
+              </button>
+            </div>
+
+          </section>
+
+          <!-- STAGE 3 -->
+
+          <section class="stage" data-stage="3">
+
+            <div class="eyebrow">HOUSE RULES, BUT CUTE</div>
+
+            <h2 class="headline">
+              One tiny rule.<br />
+              <em>For maximum story value.</em>
+            </h2>
+
+            <p class="supporting">
+              Pick the one thing that makes this feel properly ours.
+            </p>
+
+            <div class="rules" id="ruleChoices"></div>
+
+            <div class="mission-preview">
+              <small>today’s mission</small>
+              <p id="missionPreview"></p>
+            </div>
+
+            <div class="stage-actions">
+              <button class="secondary-btn" id="backToStage2">
+                ← Back
+              </button>
+
+              <button class="primary-btn red" id="lockDate">
+                🔒 &nbsp; Lock this date
+              </button>
+            </div>
+
+          </section>
+
+        </div>
+
+        <!-- FINAL -->
+
+        <section class="final-paper" data-stage="4">
+
+          <div class="ticket">
+
+            <div class="ticket-filed">FILED UNDER: IMPORTANT</div>
+
+            <div class="lock-stamp">🔒</div>
+
+            <h2 class="ticket-title">DATE LOCKED</h2>
+
+            <div class="ticket-date" id="finalDate"></div>
+
+            <div class="ticket-vibe" id="finalVibe"></div>
+
+            <div class="ticket-itinerary" id="finalItinerary"></div>
+
+            <div class="ticket-section">TODAY’S MISSION:</div>
+            <div class="ticket-mission" id="finalMission"></div>
+
+            <div class="ticket-section">PARTICIPANTS:</div>
+            <div class="participants">You ♥ me</div>
+
+            <div class="non-refundable">
+              THIS DATE IS NOW NON-REFUNDABLE ♥
+            </div>
+
+            <button class="restart" id="restartPlanner">
+              ↻ Make another plan
+            </button>
+
+          </div>
+
+        </section>
+
+      </section>
+
+      <!-- LIVE RECEIPT -->
+
+      <aside class="receipt-zone" aria-label="Our little plan preview">
+
+        <div class="flower" aria-hidden="true">🌼</div>
+
+        <div class="receipt">
+
+          <div class="receipt-tape" aria-hidden="true"></div>
+
+          <div class="receipt-title">OUR LITTLE PLAN &nbsp; ✦</div>
+
+          <div class="receipt-date" id="receiptDate"></div>
+
+          <div class="receipt-item">
+            <span>MOOD</span>
+            <strong id="receiptVibe"></strong>
+          </div>
+
+          <div class="receipt-item">
+            <span>MAIN EVENT</span>
+            <strong id="receiptActivity"></strong>
+          </div>
+
+          <div class="receipt-item">
+            <span>TINY RULE</span>
+            <strong id="receiptRule"></strong>
+          </div>
+
+          <div class="receipt-bottom">
+            + one extremely good memory<br />
+            waiting to happen
+          </div>
+
+        </div>
+
+        <div class="side-note">
+          saving this for later,<br />
+          obviously
+        </div>
+
+        <div class="sun-doodle" aria-hidden="true">☼</div>
+
+        <div class="polaroid" aria-hidden="true">
+          <div class="polaroid-inner"></div>
+        </div>
+
+        <div class="paper-heart" aria-hidden="true"></div>
+
+        <div class="stickers" aria-hidden="true">
+          ☕ 🍦
+        </div>
+
+      </aside>
+
+    </div>
+
+    <footer class="footer">
+      Made for dates worth leaving the house for. ♥
+    </footer>
+
+  </main>
+
+  <script>
+    const vibes = [
+      { emoji: "🌸", label: "Cute & calm" },
+      { emoji: "🍟", label: "Food mission" },
+      { emoji: "🤡", label: "Absolute chaos" },
+      { emoji: "🚶", label: "Let’s just wander" }
+    ];
+
+    const activities = [
+      { emoji: "☕", label: "Café" },
+      { emoji: "🍜", label: "Food" },
+      { emoji: "🎮", label: "Games" },
+      { emoji: "🎬", label: "Movie" },
+      { emoji: "🛍️", label: "Shopping" },
+      { emoji: "🌳", label: "Outdoors" },
+      { emoji: "🎨", label: "Something new" }
+    ];
+
+    const rules = [
+      {
+        emoji: "📸",
+        label: "Take a stupid photo",
+        mission: "Take one photo we’ll cringe at later.",
+        finalLabel: "Our rule"
+      },
+      {
+        emoji: "🎁",
+        label: "₹100 surprise for each other",
+        mission: "Bring a tiny surprise worth exactly ₹100.",
+        finalLabel: "Our rule"
+      },
+      {
+        emoji: "🍦",
+        label: "Must get dessert",
+        mission: "No leaving without something unnecessarily sweet.",
+        finalLabel: "Dessert"
+      },
+      {
+        emoji: "🤫",
+        label: "No phones for 30 mins",
+        mission: "Thirty whole minutes of just us.",
+        finalLabel: "Our rule"
+      },
+      {
+        emoji: "😂",
+        label: "Make each other laugh 5 times",
+        mission: "Five proper laughs. No fake ones allowed.",
+        finalLabel: "Our rule"
+      }
+    ];
+
+    const defaultState = {
+      selectedDate: new Date(2026, 8, 23),
+      displayDate: new Date(2026, 8, 1),
+      vibe: vibes[0],
+      activity: activities[0],
+      rule: rules[0],
+      stage: 1
+    };
+
+    let state = {
+      ...defaultState,
+      selectedDate: new Date(defaultState.selectedDate),
+      displayDate: new Date(defaultState.displayDate)
+    };
+
+    const $ = selector => document.querySelector(selector);
+    const $$ = selector => [...document.querySelectorAll(selector)];
+
+    const weekdayNames = [
+      "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+    ];
+
+    const monthFormatter = new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      year: "numeric"
+    });
+
+    function formatShortDate(date) {
+      return new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        day: "numeric",
+        month: "short"
+      }).format(date);
+    }
+
+    function formatLongDate(date) {
+      return new Intl.DateTimeFormat("en-US", {
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      }).format(date);
+    }
+
+    function sameDay(a, b) {
+      return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+      );
+    }
+
+    function renderCalendar() {
+      const calendar = $("#calendar");
+      const year = state.displayDate.getFullYear();
+      const month = state.displayDate.getMonth();
+
+      $("#calendarMonth").textContent =
+        monthFormatter.format(new Date(year, month, 1));
+
+      calendar.innerHTML = "";
+
+      weekdayNames.forEach(day => {
+        const label = document.createElement("div");
+        label.className = "weekday";
+        label.textContent = day.charAt(0);
+        label.setAttribute("aria-label", day);
+        calendar.appendChild(label);
+      });
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "calendar-day empty";
+        calendar.appendChild(empty);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+
+        const button = document.createElement("button");
+        button.className = "calendar-day";
+        button.textContent = day;
+        button.type = "button";
+
+        if (sameDay(date, state.selectedDate)) {
+          button.classList.add("selected");
+          button.setAttribute("aria-pressed", "true");
+        } else {
+          button.setAttribute("aria-pressed", "false");
+        }
+
+        button.setAttribute(
+          "aria-label",
+          formatLongDate(date)
+        );
+
+        button.addEventListener("click", () => {
+          state.selectedDate = date;
+          renderCalendar();
+          updateReceipt();
+        });
+
+        calendar.appendChild(button);
+      }
+
+      $("#selectedDateNote").textContent =
+        `selected: ${formatShortDate(state.selectedDate)}`;
+    }
+
+    function renderChoices() {
+      const vibeContainer = $("#vibeChoices");
+      const activityContainer = $("#activityChoices");
+      const ruleContainer = $("#ruleChoices");
+
+      vibeContainer.innerHTML = "";
+      activityContainer.innerHTML = "";
+      ruleContainer.innerHTML = "";
+
+      vibes.forEach(item => {
+        const selected = state.vibe.label === item.label;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `choice-card ${selected ? "selected" : ""}`;
+        button.setAttribute("aria-pressed", selected);
+
+        button.innerHTML = `
+          <span class="choice-emoji">${item.emoji}</span>
+          <span class="choice-label">${item.label}</span>
+          <span class="choice-check">✓</span>
+        `;
+
+        button.addEventListener("click", () => {
+          state.vibe = item;
+          renderChoices();
+          updateReceipt();
+        });
+
+        vibeContainer.appendChild(button);
+      });
+
+      activities.forEach(item => {
+        const selected = state.activity.label === item.label;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `choice-card ${selected ? "selected" : ""}`;
+        button.setAttribute("aria-pressed", selected);
+
+        button.innerHTML = `
+          <span class="choice-emoji">${item.emoji}</span>
+          <span class="choice-label">${item.label}</span>
+          <span class="choice-check">✓</span>
+        `;
+
+        button.addEventListener("click", () => {
+          state.activity = item;
+          renderChoices();
+          updateReceipt();
+        });
+
+        activityContainer.appendChild(button);
+      });
+
+      rules.forEach((item, index) => {
+        const selected = state.rule.label === item.label;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `rule-choice ${selected ? "selected" : ""}`;
+        button.setAttribute("aria-pressed", selected);
+
+        button.innerHTML = `
+          <span class="rule-number">0${index + 1}</span>
+          <span class="rule-label">${item.emoji} &nbsp; ${item.label}</span>
+          <span class="rule-check">✓</span>
+        `;
+
+        button.addEventListener("click", () => {
+          state.rule = item;
+          renderChoices();
+          updateReceipt();
+        });
+
+        ruleContainer.appendChild(button);
+      });
+
+      $("#missionPreview").textContent = state.rule.mission;
+    }
+
+    function updateReceipt() {
+      $("#receiptDate").textContent =
+        formatShortDate(state.selectedDate);
+
+      $("#receiptVibe").textContent =
+        `${state.vibe.emoji} ${state.vibe.label}`;
+
+      $("#receiptActivity").textContent =
+        `${state.activity.emoji} ${state.activity.label}`;
+
+      $("#receiptRule").textContent =
+        `${state.rule.emoji} ${state.rule.label}`;
+    }
+
+    function updateProgress() {
+      $$(".progress-step").forEach(step => {
+        const stepNumber = Number(step.dataset.progress);
+        const dot = step.querySelector(".progress-dot");
+
+        step.classList.remove("active", "complete");
+
+        if (state.stage === 4) {
+          step.classList.add("complete");
+          dot.textContent = "✓";
+          return;
+        }
+
+        if (stepNumber < state.stage) {
+          step.classList.add("complete");
+          dot.textContent = "✓";
+        } else if (stepNumber === state.stage) {
+          step.classList.add("active");
+          dot.textContent = stepNumber;
+        } else {
+          dot.textContent = stepNumber;
+        }
+      });
+    }
+
+    function goToStage(stageNumber) {
+      state.stage = stageNumber;
+
+      $$(".stage").forEach(stage => {
+        stage.classList.toggle(
+          "active",
+          Number(stage.dataset.stage) === stageNumber
+        );
+      });
+
+      $(".paper").style.display =
+        stageNumber === 4 ? "none" : "block";
+
+      $(".final-paper").classList.toggle(
+        "active",
+        stageNumber === 4
+      );
+
+      updateProgress();
+
+      if (stageNumber === 4) {
+        renderFinalTicket();
+      }
+
+      window.scrollTo({
+        top: 0,
+        behavior:
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth"
+      });
+    }
+
+    function renderFinalTicket() {
+      const finalRuleItem =
+        state.rule.label === "Must get dessert"
+          ? `${state.rule.emoji} Dessert`
+          : `${state.rule.emoji} ${state.rule.finalLabel}`;
+
+      $("#finalDate").textContent =
+        formatLongDate(state.selectedDate);
+
+      $("#finalVibe").textContent =
+        `♥  ${state.vibe.emoji} ${state.vibe.label}  ♥`;
+
+      $("#finalItinerary").innerHTML = `
+        ${state.activity.emoji} ${state.activity.label}
+        &nbsp; → &nbsp;
+        🚶 Wander
+        &nbsp; → &nbsp;
+        ${finalRuleItem}
+      `;
+
+      $("#finalMission").textContent =
+        state.rule.mission;
+    }
+
+    $("#prevMonth").addEventListener("click", () => {
+      state.displayDate = new Date(
+        state.displayDate.getFullYear(),
+        state.displayDate.getMonth() - 1,
+        1
+      );
+
+      renderCalendar();
+    });
+
+    $("#nextMonth").addEventListener("click", () => {
+      state.displayDate = new Date(
+        state.displayDate.getFullYear(),
+        state.displayDate.getMonth() + 1,
+        1
+      );
+
+      renderCalendar();
+    });
+
+    $("#toStage2").addEventListener("click", () => goToStage(2));
+    $("#backToStage1").addEventListener("click", () => goToStage(1));
+
+    $("#toStage3").addEventListener("click", () => goToStage(3));
+    $("#backToStage2").addEventListener("click", () => goToStage(2));
+
+    $("#lockDate").addEventListener("click", () => goToStage(4));
+
+    $("#restartPlanner").addEventListener("click", () => {
+      state = {
+        ...defaultState,
+        selectedDate: new Date(2026, 8, 23),
+        displayDate: new Date(2026, 8, 1)
+      };
+
+      renderCalendar();
+      renderChoices();
+      updateReceipt();
+      goToStage(1);
+    });
+
+    renderCalendar();
+    renderChoices();
+    updateReceipt();
+    updateProgress();
+  </script>
+</body>
+</html>
