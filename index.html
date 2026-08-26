@@ -1848,7 +1848,42 @@
     $("#toStage3").addEventListener("click", () => goToStage(3));
     $("#backToStage2").addEventListener("click", () => goToStage(2));
 
-    $("#lockDate").addEventListener("click", () => goToStage(4));
+    $("#lockDate").addEventListener("click", () => {
+  const datePlan = {
+    date: formatLongDate(state.selectedDate),
+    vibe: state.vibe.label,
+    activity: state.activity.label,
+    rule: state.rule.label
+  };
+
+  console.log("DATE LOCKED 💌", datePlan);
+
+  $("#lockDate").addEventListener("click", () => {
+  const datePlan = {
+    date: formatLongDate(state.selectedDate),
+    vibe: state.vibe.label,
+    activity: state.activity.label,
+    rule: state.rule.label
+  };
+
+  const subject = encodeURIComponent("💌 Our date is locked!");
+
+  const body = encodeURIComponent(`
+OUR LITTLE PLAN 💌
+
+Date: ${datePlan.date}
+Mood: ${datePlan.vibe}
+Main event: ${datePlan.activity}
+Tiny rule: ${datePlan.rule}
+
+This date is now non-refundable ♥
+  `);
+
+  window.location.href =
+    `mailto:muffysurat@gmail.com?subject=${subject}&body=${body}`;
+
+  goToStage(4);
+});
 
     $("#restartPlanner").addEventListener("click", () => {
       state = {
