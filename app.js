@@ -29,3 +29,8 @@ $('#memoryForm').onsubmit=async e=>{e.preventDefault();if(profile.package!=='scr
 function renderMemories(){const box=$('#memoryCards');box.replaceChildren();if(profile.package!=='scrapbook'||!memories.length){const p=document.createElement('p');p.className='handwritten';p.textContent='the best pages are still ahead of you.';box.append(p);return}memories.forEach(m=>{const card=document.createElement('article');card.className='memory-card';if(m.photo){const image=document.createElement('img');image.src=m.photo;image.alt=m.title;card.append(image)}for(const [tag,text,cls]of [['small',m.day,''],['h3',m.title,''],['p',m.note,''],['div','★'.repeat(m.rating),'rating']]){const el=document.createElement(tag);el.textContent=text;el.className=cls;card.append(el)}const remove=document.createElement('button');remove.className='text-btn';remove.textContent='remove memory';remove.onclick=()=>{memories=memories.filter(x=>x.id!==m.id);persist();renderMemories()};card.append(remove);box.append(card)})}
 $('#openSaved').onclick=()=>{if(profile)enterSpace();else{notify('No saved preview yet. Let’s make one.');start('scrapbook')}};
 try{const saved=JSON.parse(localStorage.getItem('pickadate-preview-v1'));if(saved?.profile){profile={...saved.profile,package:'scrapbook'};plan=saved.plan||null;memories=Array.isArray(saved.memories)?saved.memories:[]}}catch{}
+
+const continueLink=document.createElement('a');
+continueLink.href='/tool';continueLink.className='btn';continueLink.textContent='keep our little space';
+document.querySelector('.space-tabs').after(continueLink);
+continueLink.style.marginTop='20px';

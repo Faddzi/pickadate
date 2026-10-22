@@ -22,3 +22,6 @@ Implemented server-backed flows: register/sign in/sign out, create multiple coup
 Local-only default binding is 127.0.0.1. For deployment configure PORT, HOST, PUBLIC_ORIGIN (exact HTTPS origin), and optional PICKADATE_DB. Use persistent disk and back up the SQLite database. Public deployment still requires TLS, tested hosting configuration, account recovery/email verification, production rate limiting, privacy/service terms, deletion/export controls, payment verification and subdomain routing. No live payment or subdomain provision is implemented. Do not expose this development build as a paid production service yet. Invitation times use the viewer's local timezone; shared timezone selection remains to be implemented.
 
 Validation: JavaScript syntax checks and HTTP integration checks for registration, login/logout, durable records, cross-account access denial, public partner replies, scrapbook saving and rejected cross-origin mutations.
+
+
+Latest workflow: the preview carries names, email, address, theme, note and photo into account onboarding. Saved spaces now offer profile editing, cover-photo display, copy-link controls and canvas PNG date-ticket export. Cover photos and themes also appear on partner invitation pages.
