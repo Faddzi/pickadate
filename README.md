@@ -2,7 +2,7 @@
 
 Static product prototype for personalised couple spaces. Open `index.html` in a browser or serve this directory with a static HTTP server.
 
-Packages: Date Invite ₹199, Couple Space ₹299, Our Scrapbook ₹359. All are one-time prices.
+One package: ₹259 one-time per personalised subdomain and couple space. Includes all planner, invitation, roulette, ticket, countdown and scrapbook features, with up to 50 compressed photos.
 
 Implemented: marketing page, personalisation, themes, local photo compression, browser-saved preview, date invitations, simulated replies, roulette with locks, countdown, PNG ticket export, and capped local scrapbook.
 
