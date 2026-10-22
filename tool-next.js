@@ -20,5 +20,5 @@ const originalDashboard=dashboard;
 dashboard=async function(){await originalDashboard();const d=draft();if(d){const form=$('#spaceForm');form.hidden=false;for(const key of ['name1','name2','slug','message','theme'])if(form.elements[key])form.elements[key].value=d[key]||'';message('Your preview details are filled in below. Create your space when you are ready.')}};
 $('#spaceForm').onsubmit=e=>{e.preventDefault();run(async()=>{const data=values(e.target),d=draft();data.photo=e.target.elements.photo.files.length?await photo(e.target.elements.photo.files[0]):d?.photo||'';if(data.photo.length>350000)throw Error('Please choose a smaller cover photo before saving.');const s=await api('/api/spaces',data);localStorage.removeItem('pickadate-preview-v1');e.target.reset();await openSpace(s.id)})};
 
-if(draftProfile&&!inviteToken)api("/api/me").then(()=>dashboard()).catch(()=>{});
-if(inviteToken)run(invitation);
+
+
