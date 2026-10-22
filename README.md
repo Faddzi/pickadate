@@ -25,3 +25,6 @@ Validation: JavaScript syntax checks and HTTP integration checks for registratio
 
 
 Latest workflow: the preview carries names, email, address, theme, note and photo into account onboarding. Saved spaces now offer profile editing, cover-photo display, copy-link controls and canvas PNG date-ticket export. Cover photos and themes also appear on partner invitation pages.
+
+
+Cloudflare deployment: use worker.mjs with wrangler.jsonc and the public assets directory. Run python prepare-cloudflare.py after source edits, then node test-worker.mjs. D1 staging database is provisioned with schema.sql. Configure builds from revamp/couple-spaces with no build command and npx wrangler deploy as the deploy command. The intended main domain is suratwala.in; customer addresses will be first-level subdomains. Existing live DNS has not been changed.

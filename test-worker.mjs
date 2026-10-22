@@ -1,0 +1,22 @@
+import {DatabaseSync} from 'node:sqlite';
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+import worker from './worker.mjs';
+const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('./schema.sql',import.meta.url),'utf8'));
+const env={DB:{prepare(sql){let args=[];return {bind(...values){args=values;return this},async first(){return sqlite.prepare(sql).get(...args)||null},async all(){return {results:sqlite.prepare(sql).all(...args)}},async run(){return sqlite.prepare(sql).run(...args)}}}},ASSETS:{fetch:async request=>new Response(new URL(request.url).pathname)}};
+const ctx={waitUntil:p=>p.catch(e=>{throw e})};let cookie='';
+async function call(url,body,status=200,session=cookie,method=body?'POST':'GET'){const response=await worker.fetch(new Request('https://staging.example'+url,{method,headers:{'Origin':'https://staging.example','Content-Type':'application/json',Cookie:session,'CF-Connecting-IP':'192.0.2.1'},body:body?JSON.stringify(body):undefined}),env,ctx);assert.equal(response.status,status,await response.clone().text());if(response.headers.get('set-cookie'))cookie=response.headers.get('set-cookie').split(';')[0];return response.json()}
+await call('/api/register',{email:'owner@example.com',password:'a-long-test-password'});
+const s=await call('/api/spaces',{slug:'ourstory',name1:'Alex',name2:'Sam',theme:'sage'},201);
+await call('/api/spaces/'+s.id,null,401,'');
+const invite=await call('/api/spaces/'+s.id+'/invitations',{day:'2026-12-01',time:'17:30',vibe:'cozy',activity:'cafe',rule:'dessert'},201);
+const endpoint='/api/invitations/'+invite.url.split('/').at(-1);
+await call(endpoint,{status:'accepted',message:'yes'},200,'');
+assert.equal((await call('/api/spaces/'+s.id)).invitations[0].status,'accepted');
+await call('/api/spaces/'+s.id+'/memories',{title:'our day',note:'a good one',day:'2026-10-22',rating:5,photo:''},201);
+assert.equal((await call('/api/spaces/'+s.id)).memories.length,1);
+await call('/api/spaces/'+s.id,{name1:'Alex',name2:'Sam',theme:'rose',message:'updated'},200,cookie,'PUT');
+assert.equal((await call(endpoint,null,200,'')).profile.message,'updated');
+const asset=await worker.fetch(new Request('https://staging.example/tool'),env,ctx);assert.equal(await asset.text(),'/tool.html');
+const bad=await worker.fetch(new Request('https://staging.example/api/logout',{method:'POST',headers:{Origin:'https://wrong.example','Content-Type':'application/json'},body:'{}'}),env,ctx);assert.equal(bad.status,403);
+console.log('PASS: Workers adapter account, ownership, invitation, profile, scrapbook, assets and origin checks');

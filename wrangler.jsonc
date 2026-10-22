@@ -1,0 +1,9 @@
+{
+  "name": "pickadate-staging",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-22",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {"directory": "./public", "binding": "ASSETS", "run_worker_first": true},
+  "d1_databases": [{"binding": "DB", "database_name": "pickadate-staging", "database_id": "67731bbf-c164-4ab8-86c4-e37106e0c3c8"}],
+  "workers_dev": true
+}
