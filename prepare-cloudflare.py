@@ -5,7 +5,7 @@ root=Path(__file__).resolve().parent
 source=(root/'server.mjs').read_text(encoding='utf-8')
 schema=re.search(r'db.exec\(`(.*?)`\);',source,re.S).group(1)
 schema=schema.replace('PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL;','PRAGMA foreign_keys=ON;')
-schema+='\nCREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);\n'
+schema+=re.search(r'export const accountSchema=`(.*?)`;', (root/'account-api.mjs').read_text(encoding='utf-8'),re.S).group(1)
 (root/'schema.sql').write_text(schema,encoding='utf-8')
 helpers=source[source.index('const token='):source.index('const mime=')]
 helpers=re.sub(r'const attempts=new Map\(\);\s*function rate\(req\)\{.*?\}\s*function password', '''async function rate(req){const now=Date.now(),window=Math.floor(now/900000),key=hash(req.socket.remoteAddress+':'+window);const row=await env.DB.prepare('INSERT INTO rate_limits(key,count,expires) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').bind(key,now+900000).first();if(row.count>30)fail('Too many attempts. Please try again in 15 minutes.',429);ctx.waitUntil(env.DB.prepare('DELETE FROM rate_limits WHERE expires<?').bind(now).run())}
@@ -16,7 +16,8 @@ handlers=source[source.index(' const url=new URL'):source.index(" const file=p==
 handlers=handlers.replace("new URL(req.url,'http://localhost')","new URL(request.url)")
 handlers=handlers.replace('process.env.PUBLIC_ORIGIN||`http://${req.headers.host}`','new URL(request.url).origin')
 helpers=helpers.replace('function auth(req)','async function auth(req)').replace('function owned(req,id)','async function owned(req,id)').replace('const user=auth(req)','const user=await auth(req)')
-handlers=handlers.replace('function session(id)','async function session(id)').replace('const id=auth(req)','const id=await auth(req)').replace('const user=auth(req)','const user=await auth(req)').replace('const s=owned(req,sm[1])','const s=await owned(req,sm[1])').replace('rate(req);','await rate(req);')
+handlers=handlers.replace('emailTransport(process.env)', 'emailTransport(env,p=>ctx.waitUntil(p))').replace('batch:accountBatch','batch:accountBatch').replace('origin:process.env.PUBLIC_ORIGIN||`http://${req.headers.host}`','origin:env.PUBLIC_ORIGIN||\"https://suratwala.in\"')
+handlers=handlers.replace('function session(id,expectedPassword)','async function session(id,expectedPassword)').replace('const id=auth(req)','const id=await auth(req)').replace('const user=auth(req)','const user=await auth(req)').replace('const s=owned(req,sm[1])','const s=await owned(req,sm[1])').replace('rate(req);','await rate(req);')
 handlers=handlers.replace("process.env.PUBLIC_ORIGIN?.startsWith('https:')","new URL(request.url).protocol==='https:'")
 def endparen(text,start):
  depth=0;quote=None;escape=False
@@ -43,21 +44,24 @@ def adapt(text):
  return text
 handlers=handlers.replace('const s=owned(req,reviewMatch[1])','const s=await owned(req,reviewMatch[1])')
 helpers=adapt(helpers);handlers=adapt(handlers)
-prefix="""import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
+prefix="""import {accountAPI,emailTransport,purgeAccountData} from './account-api.mjs';
+import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
 import {addressStatus,tenantName,RESERVED_NAMES} from './tenant.mjs';
 import {randomBytes,scryptSync,timingSafeEqual,createHash} from 'node:crypto';
 export default {async fetch(request,env,ctx){
 const send=(code,data,headers={})=>new Response(JSON.stringify(data),{status:code,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',...headers}});
 const req={url:request.url,method:request.method,headers:Object.fromEntries(request.headers),socket:{remoteAddress:request.headers.get('CF-Connecting-IP')||'local'}};
+const accountQuery=(...args)=>query(...args);
+const accountBatch=statements=>env.DB.batch(statements.map(([sql,...args])=>env.DB.prepare(sql).bind(...args)));
 async function query(op,sql,...args){const statement=env.DB.prepare(sql).bind(...args);if(op==='get')return statement.first();if(op==='all')return (await statement.all()).results;return statement.run()}
 """
 suffix="""
 const file=p==='/tool'||p.startsWith('/invite/')?'tool.html':p==='/'?'index.html':p.slice(1);
-if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js'].includes(file))return send(404,{error:'Not found.'});
+if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js'].includes(file))return send(404,{error:'Not found.'});
 const assetURL=new URL(request.url);assetURL.pathname='/'+file;
 const response=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(response.headers);headers.set('Referrer-Policy','no-referrer');headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');headers.set('Cache-Control','no-cache');return new Response(response.body,{status:response.status,headers});
 }catch(e){if(!e.status)console.error(e.message);return send(e.status||(String(e.message).includes('UNIQUE constraint failed')?409:500),{error:e.status?e.message:String(e.message).includes('UNIQUE constraint failed')?'That address or email is already in use.':'Something went wrong. Please try again.'})}
-}};
+},async scheduled(event,env,ctx){ctx.waitUntil(purgeAccountData(statements=>env.DB.batch(statements.map(([sql,...args])=>env.DB.prepare(sql).bind(...args)))))} };
 """
 tenant_code="""
 const host=new URL(request.url).hostname,tenant=tenantName(host);
@@ -75,5 +79,5 @@ if(tenant!==null){
 """
 (root/'worker.mjs').write_text(prefix+helpers+'try{\n'+tenant_code+handlers+suffix,encoding='utf-8')
 public=root/'public';public.mkdir(exist_ok=True)
-for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js']:shutil.copyfile(root/name,public/name)
+for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js']:shutil.copyfile(root/name,public/name)
 print('Prepared Workers API, D1 schema, and public assets.')

@@ -28,5 +28,10 @@
       "pattern": "*.suratwala.in/*",
       "zone_name": "suratwala.in"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": [
+      "0 3 * * *"
+    ]
+  }
 }

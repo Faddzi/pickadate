@@ -32,6 +32,6 @@ openSpace=async function(id){await beforeFlowOpen(id);clearInterval(spacePoll);f
 const oldTicket=downloadDateTicket;
 downloadDateTicket=function(profile,details,status){const extra=details.agreementNote?' · agreed change: '+details.agreementNote:'';oldTicket(profile,{...details,time:details.time+' '+(details.timezone||'Asia/Kolkata'),rule:details.rule+extra},status)};
 window.addEventListener('focus',()=>{if(inviteToken&&shownInvitation)run(invitation)});
-run(async()=>{if(inviteToken)await invitation();else{try{await dashboard()}catch{view('auth')}}});
+
 
 setInterval(()=>{if(!current||$("#workspace").hidden)return;for(const node of document.querySelectorAll(".owner-countdown")){const row=current.invitations.find(i=>i.id===node.dataset.invitationId);if(row)node.textContent=countdownText(row)}},1000);

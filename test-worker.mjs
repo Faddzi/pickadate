@@ -4,7 +4,10 @@ import assert from 'node:assert/strict';
 import worker from './worker.mjs';
 const sqlite=new DatabaseSync(':memory:');sqlite.exec(readFileSync(new URL('./schema.sql',import.meta.url),'utf8'));
 const env={DB:{prepare(sql){let args=[];return {bind(...values){args=values;return this},async first(){return sqlite.prepare(sql).get(...args)||null},async all(){return {results:sqlite.prepare(sql).all(...args)}},async run(){return sqlite.prepare(sql).run(...args)}}}},ASSETS:{fetch:async request=>new Response(new URL(request.url).pathname)}};
-const ctx={waitUntil:p=>p.catch(e=>{throw e})};let cookie='';
+let batchQueue=Promise.resolve();
+env.DB.batch=statements=>{const work=batchQueue.then(async()=>{sqlite.exec('BEGIN IMMEDIATE');try{const rows=[];for(const stmt of statements)rows.push(await stmt.run());sqlite.exec('COMMIT');return rows}catch(e){sqlite.exec('ROLLBACK');throw e}});batchQueue=work.catch(()=>{});return work};
+const pendingTasks=[];
+const ctx={waitUntil:p=>{pendingTasks.push(p);p.catch(e=>{throw e})}};let cookie='';
 async function call(url,body,status=200,session=cookie,method=body?'POST':'GET'){const response=await worker.fetch(new Request('https://staging.example'+url,{method,headers:{'Origin':'https://staging.example','Content-Type':'application/json',Cookie:session,'CF-Connecting-IP':'192.0.2.1'},body:body?JSON.stringify(body):undefined}),env,ctx);assert.equal(response.status,status,await response.clone().text());if(response.headers.get('set-cookie'))cookie=response.headers.get('set-cookie').split(';')[0];return response.json()}
 await call('/api/register',{email:'owner@example.com',password:'a-long-test-password'});
 const s=await call('/api/spaces',{slug:'ourstory',name1:'Alex',name2:'Sam',theme:'sage'},201);
@@ -61,3 +64,55 @@ const ownerCookie=cookie;await call('/api/register',{email:'stranger@example.com
 await call(reviewURL,{action:'accept',revision:8});
 const {instantFor}=await import('./invitation-flow.mjs');assert.equal(instantFor('2026-12-01','17:30','Europe/London'),'2026-12-01T17:30:00.000Z');assert.equal(instantFor('2026-12-01','17:30','Asia/Kolkata'),'2026-12-01T12:00:00.000Z');assert.throws(()=>instantFor('2026-03-08','02:30','America/New_York'));
 console.log('PASS: owner-only approval, stale/concurrent reply rejection, structured date/time/activity changes, decline restores locked plan, shared canonical countdown timestamp, timezone validation and legacy text counter approval');
+
+// Recovery tokens never leave the email transport. Test with an in-memory sender.
+const delivery=[];env.MAIL_FROM='hello@suratwala.in';env.PUBLIC_ORIGIN='https://staging.example';env.EMAIL={send:async message=>{delivery.push(message);return {messageId:'test-only'}}};
+assert.equal((await call('/api/account')).verified,false);
+await call('/api/account/verification',{});
+assert.equal(delivery.length,1);assert.match(delivery[0].text,/https:\/\/staging.example\/tool#verify=/);
+const verification=delivery[0].text.match(/#verify=([a-f0-9]+)/)[1];
+assert.equal(sqlite.prepare('SELECT token FROM account_tokens').get().token===verification,false);
+await call('/api/account/verify',{token:verification},200,'');assert.equal((await call('/api/account')).verified,true);
+await call('/api/account/verify',{token:verification},400,'');
+const beforeForgot=delivery.length;
+const unknown=await call('/api/account/forgot',{email:'unknown@example.com'},200,'');
+const known=await call('/api/account/forgot',{email:'owner@example.com'},200,'');assert.deepEqual(known,unknown);
+await Promise.all(pendingTasks.splice(0));assert.equal(delivery.length,beforeForgot+1);
+let reset=delivery.at(-1).text.match(/#reset=([a-f0-9]+)/)[1];
+await call('/api/account/reset',{token:reset,password:'short'},400,'');
+await call('/api/account/verify',{token:reset},400,'');
+await call('/api/account/reset',{token:reset,password:'new-strong-password'},200,'');
+await call('/api/me',null,401,ownerCookie);
+await call('/api/login',{email:'owner@example.com',password:'a-long-test-password'},401,'');
+await call('/api/login',{email:'owner@example.com',password:'new-strong-password'},200,'');
+await call('/api/account/reset',{token:reset,password:'reuse-attempt-password'},400,'');
+assert.equal((await call('/api/account')).verified,true);
+await call('/api/account/forgot',{email:'owner@example.com'},200,'');await Promise.all(pendingTasks.splice(0));reset=delivery.at(-1).text.match(/#reset=([a-f0-9]+)/)[1];
+sqlite.prepare("UPDATE account_tokens SET expires=0 WHERE kind='reset' AND consumed IS NULL").run();
+await call('/api/account/reset',{token:reset,password:'expired-token-password'},400,'');
+const savedCookie=cookie;env.EMAIL=undefined;env.MAIL_FROM=undefined;
+await call('/api/account/forgot',{email:'owner@example.com'},503,'');assert.equal((await call('/api/account',null,200,savedCookie)).emailReady,false);cookie=savedCookie;
+console.log('PASS: verification, hashed single-use tokens, expiry, purpose isolation, generic reset response, password update, session revocation, old password rejection, unavailable sender');
+const memoriesPath='/api/spaces/'+s.id+'/memories/';
+const memory=(await call('/api/spaces/'+s.id)).memories[0];
+sqlite.prepare('UPDATE memories SET details=? WHERE id=?').run(JSON.stringify({...memory.details,photo:'data:image/png;base64,dGVzdA=='}),memory.id);
+let exported=await call(memoriesPath+'export');assert.equal(exported.memories[0].note,'a good one');assert.equal(exported.memories[0].photo,'data:image/png;base64,dGVzdA==');assert.equal(exported.format,'pickadate-scrapbook');
+await call('/api/login',{email:'stranger@example.com',password:'another-long-password'},200,'');
+await call(memoriesPath+memory.id,{},404,cookie,'DELETE');await call(memoriesPath+'export',null,404);cookie=savedCookie;
+await call(memoriesPath+memory.id,{},200,cookie,'DELETE');assert.equal((await call('/api/spaces/'+s.id)).memories.length,0);
+let trash=await call(memoriesPath+'trash');assert.equal(trash.memories.length,1);
+exported=await call(memoriesPath+'export');assert.ok(exported.memories[0].deletedAt);
+await call(memoriesPath+memory.id+'/restore',{});assert.equal((await call('/api/spaces/'+s.id)).memories.length,1);
+await call(memoriesPath+memory.id,{},200,cookie,'DELETE');sqlite.prepare('UPDATE memory_trash SET deleted_at=?').run(Date.now()-31*86400000);
+await worker.scheduled({},env,ctx);await Promise.all(pendingTasks.splice(0));assert.equal(sqlite.prepare('SELECT count(*) AS n FROM memories').get().n,0);
+await call(memoriesPath+memory.id+'/restore',{},404);
+assert.equal((await tenant('ourstory',memoriesPath+'export')).status,404);
+console.log('PASS: owner-only scrapbook export including photos/trash, delete, restore, 30-day purge, tenant isolation');
+
+env.MAIL_FROM='hello@suratwala.in';env.EMAIL={send:async message=>delivery.push(message)};
+await call('/api/account/forgot',{email:'owner@example.com'},200,'');await Promise.all(pendingTasks.splice(0));
+const concurrentToken=delivery.at(-1).text.match(/#reset=([a-f0-9]+)/)[1];
+async function concurrentReset(){const r=await worker.fetch(new Request('https://staging.example/api/account/reset',{method:'POST',headers:{Origin:'https://staging.example','Content-Type':'application/json','CF-Connecting-IP':'192.0.2.8'},body:JSON.stringify({token:concurrentToken,password:'concurrent-new-password'})}),env,ctx);return r.status}
+assert.deepEqual((await Promise.all([concurrentReset(),concurrentReset()])).sort(),[200,400]);
+await call('/api/account/forgot',{email:'limit@example.com'},200,'');for(let n=0;n<4;n++)await call('/api/account/forgot',{email:'limit@example.com'},200,'');await call('/api/account/forgot',{email:'limit@example.com'},429,'');
+console.log('PASS: concurrent token consumption and per-address recovery rate limits');
