@@ -41,8 +41,10 @@ def adapt(text):
   replacement="(await query('"+op+"',"+sql+(','+args if args else '')+'))'
   text=text[:start]+replacement+text[end2+1:]
  return text
+handlers=handlers.replace("const im=p.match", "const im=p.match")
 helpers=adapt(helpers);handlers=adapt(handlers)
-prefix="""import {randomBytes,scryptSync,timingSafeEqual,createHash} from 'node:crypto';
+prefix="""import {addressStatus,tenantName,RESERVED_NAMES} from './tenant.mjs';
+import {randomBytes,scryptSync,timingSafeEqual,createHash} from 'node:crypto';
 export default {async fetch(request,env,ctx){
 const send=(code,data,headers={})=>new Response(JSON.stringify(data),{status:code,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',...headers}});
 const req={url:request.url,method:request.method,headers:Object.fromEntries(request.headers),socket:{remoteAddress:request.headers.get('CF-Connecting-IP')||'local'}};
@@ -50,13 +52,27 @@ async function query(op,sql,...args){const statement=env.DB.prepare(sql).bind(..
 """
 suffix="""
 const file=p==='/tool'||p.startsWith('/invite/')?'tool.html':p==='/'?'index.html':p.slice(1);
-if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css'].includes(file))return send(404,{error:'Not found.'});
+if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js'].includes(file))return send(404,{error:'Not found.'});
 const assetURL=new URL(request.url);assetURL.pathname='/'+file;
 const response=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(response.headers);headers.set('Referrer-Policy','no-referrer');headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');headers.set('Cache-Control','no-cache');return new Response(response.body,{status:response.status,headers});
-}catch(e){if(!e.status)console.error(e.message);return send(e.status||500,{error:e.status?e.message:'Something went wrong. Please try again.'})}
+}catch(e){if(!e.status)console.error(e.message);return send(e.status||(String(e.message).includes('UNIQUE constraint failed')?409:500),{error:e.status?e.message:String(e.message).includes('UNIQUE constraint failed')?'That address or email is already in use.':'Something went wrong. Please try again.'})}
 }};
 """
-(root/'worker.mjs').write_text(prefix+helpers+'try{\n'+handlers+suffix,encoding='utf-8')
+tenant_code="""
+const host=new URL(request.url).hostname,tenant=tenantName(host);
+if(tenant!==null){
+ if(tenant==='www'||tenant==='pickadate')return Response.redirect('https://suratwala.in'+new URL(request.url).pathname,302);
+ if(!addressStatus(tenant).valid)return send(404,{error:'This address is not available.'});
+ const space=await query('get','SELECT id,slug,profile FROM spaces WHERE slug=?',tenant);
+ if(!space)return send(404,{error:'This little address is waiting for its story.'});
+ const pathname=new URL(request.url).pathname;
+ if(pathname==='/api/couple'&&request.method==='GET'){const invitation=await query('get','SELECT token,details,status FROM invites WHERE space_id=? ORDER BY created DESC,id DESC LIMIT 1',space.id);return send(200,{slug:space.slug,profile:JSON.parse(space.profile),invitation:invitation?{...invitation,details:JSON.parse(invitation.details)}:null},{'X-Robots-Tag':'noindex, nofollow'})}
+ if(pathname.startsWith('/api/')){const match=pathname.match(/^\\/api\\/invitations\\/([a-f0-9]{48})$/);if(!match)return send(404,{error:'Not found.'});const allowed=await query('get','SELECT id FROM invites WHERE token=? AND space_id=?',match[1],space.id);if(!allowed)return send(404,{error:'Invitation not found.'})}
+ if(pathname==='/'){const assetURL=new URL(request.url);assetURL.pathname='/couple.html';const result=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(result.headers);headers.set('Cache-Control','no-store');headers.set('X-Robots-Tag','noindex, nofollow');headers.set('Referrer-Policy','no-referrer');return new Response(result.body,{status:result.status,headers})}
+ if(pathname==='/tool')return Response.redirect('https://suratwala.in/tool',302);
+}
+"""
+(root/'worker.mjs').write_text(prefix+helpers+'try{\n'+tenant_code+handlers+suffix,encoding='utf-8')
 public=root/'public';public.mkdir(exist_ok=True)
-for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css']:shutil.copyfile(root/name,public/name)
+for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js']:shutil.copyfile(root/name,public/name)
 print('Prepared Workers API, D1 schema, and public assets.')

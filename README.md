@@ -28,3 +28,6 @@ Latest workflow: the preview carries names, email, address, theme, note and phot
 
 
 Cloudflare deployment: use worker.mjs with wrangler.jsonc and the public assets directory. Run python prepare-cloudflare.py after source edits, then node test-worker.mjs. D1 staging database is provisioned with schema.sql. Configure builds from revamp/couple-spaces with no build command and npx wrangler deploy as the deploy command. The intended main domain is suratwala.in; customer addresses will be first-level subdomains. Existing live DNS has not been changed.
+
+
+Couple subdomains: wildcard proxied DNS and the *.suratwala.in/* Worker route serve couple.html for each claimed slug. Public /api/couple exposes only names, cover, welcome, theme and latest invitation; scrapbook, account email, owner ID and older plans remain private. Latest invitations are shared by the couple address. Owner APIs remain on the main domain. Invitation tokens cannot be used on another couple hostname. Addresses are 3 to 35 characters, normalised to lowercase and checked against reserved names. Availability is advisory; the unique database constraint remains authoritative under concurrent requests. Main www and legacy pickadate hosts redirect to the main site.

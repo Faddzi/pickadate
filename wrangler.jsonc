@@ -23,6 +23,10 @@
     {
       "pattern": "suratwala.in/*",
       "zone_name": "suratwala.in"
+    },
+    {
+      "pattern": "*.suratwala.in/*",
+      "zone_name": "suratwala.in"
     }
   ]
 }
