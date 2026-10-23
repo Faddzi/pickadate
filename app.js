@@ -1,5 +1,4 @@
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const packages={scrapbook:259};
 const options={vibe:['cozy & unhurried','food mission','absolute chaos','a little adventure','just us, wandering'],activity:['☕ café hopping','🍜 try a new cuisine','🎬 movie night','🌳 picnic in the park','🎨 make something together','🎮 games & snacks','🚶 a sunset wander'],rule:['take one wonderfully silly photo','dessert is compulsory','no phones for 30 minutes','a ₹100 surprise for each other','make each other laugh five times','pick a song for each other','take the long way home']};
 let profile=null, plan=null, memories=[], photo='', locks={}, countdownTimer;
 const form=$('#personalise');
