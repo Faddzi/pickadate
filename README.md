@@ -79,12 +79,12 @@ npm run test:devices
 
 The browser suite covers desktop Chromium, Android Chrome emulation and iPhone Safari emulation. It checks narrow layouts, separate owner and partner sessions, agreement updates, photo limits and PNG ticket downloads. Other checks cover ownership, recovery tokens, memory privacy, concurrent limits, SEO routing and encrypted backup restoration using synthetic data.
 
-Emulation does not replace real-phone checks of Photos, file pickers and native sharing. See [LAUNCH-CHECKS.md](LAUNCH-CHECKS.md) and the [phone checklist](https://suratwala.in/help#phone-check).
+Emulation does not replace real-phone checks of Photos, file pickers and native sharing. See [LAUNCH-CHECKS.md](https://github.com/Faddzi/pickadate/blob/revamp/couple-spaces/LAUNCH-CHECKS.md) and the [phone checklist](https://suratwala.in/help#phone-check).
 
 ## Remaining launch setup
 
 - **Email delivery:** Verification and password-reset flows are implemented. Live delivery still needs a verified sender and `MAIL_FROM` plus `RESEND_API_KEY`, or a supported email binding. Never commit credentials.
-- **External backups:** The encrypted workflow is installed on `main`, but remains paused until credentials, a successful manual backup and an isolated restore check are complete. See [BACKUPS.md](BACKUPS.md) before enabling `BACKUPS_ENABLED`.
+- **External backups:** The encrypted workflow is installed on `main`, but remains paused until credentials, a successful manual backup and an isolated restore check are complete. See [BACKUPS.md](https://github.com/Faddzi/pickadate/blob/revamp/couple-spaces/BACKUPS.md) before enabling `BACKUPS_ENABLED`.
 - **Physical phones:** Real Android and iPhone testing remains pending.
 - **Search Console:** Domain verification and sitemap submission remain pending. The public sitemap is [suratwala.in/sitemap.xml](https://suratwala.in/sitemap.xml).
 
