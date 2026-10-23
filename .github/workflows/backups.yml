@@ -1,0 +1,35 @@
+name: Encrypted database backup
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 3 * * *'
+permissions:
+  contents: read
+jobs:
+  backup:
+    if: github.event_name == 'workflow_dispatch' || vars.BACKUPS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_ACCOUNT_ID: '1612391ab8ae0ff5e631c69a3fb08267'
+      D1_DATABASE_ID: '67731bbf-c164-4ab8-86c4-e37106e0c3c8'
+      CLOUDFLARE_BACKUP_TOKEN: ${{ secrets.CLOUDFLARE_BACKUP_TOKEN }}
+      BACKUP_KEY: ${{ secrets.BACKUP_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: revamp/couple-spaces
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check backup configuration
+        run: node -e "if(!process.env.CLOUDFLARE_BACKUP_TOKEN || !process.env.BACKUP_KEY) {console.error('Backup credentials are missing. Configure CLOUDFLARE_BACKUP_TOKEN and BACKUP_KEY.');process.exit(1)}"
+      - run: node test-backup.mjs
+      - run: node scripts/backup.mjs export
+      - uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-database-${{ github.run_id }}
+          path: backups/*.pdbak
+          retention-days: 7
+          if-no-files-found: error
