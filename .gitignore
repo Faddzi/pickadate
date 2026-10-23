@@ -8,3 +8,6 @@ test-results/
 backups/
 *.pdbak
 *.sql.enc
+
+# Generated deployment assets; edit the root sources instead.
+public/

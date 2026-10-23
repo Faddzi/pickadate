@@ -52,11 +52,13 @@ The local server uses SQLite under `data/`, excluded from Git. Local binding def
 | Photos | Browser compression and server-side format and size validation |
 | Discovery | Canonical URLs, sitemap, structured data and branded sharing previews |
 
-`server.mjs` is the local API source. `prepare-cloudflare.py` generates `worker.mjs`, `schema.sql` and the `public/` asset copies. Regenerate after changing API source or public assets:
+`server.mjs` is the local API source. `prepare-cloudflare.py` regenerates `worker.mjs` and `schema.sql` after API changes:
 
 ```sh
 python prepare-cloudflare.py
 ```
+
+The editable HTML, CSS, JavaScript and images stay at the repository root. `public/` is ignored deployment output, generated from those sources by `npm run prepare`. Both npm installation and Wrangler deployment run this preparation automatically. To refresh assets without regenerating the API, run `npm run prepare`.
 
 Production runs at **suratwala.in**. The Cloudflare build currently deploys **`revamp/couple-spaces`** using `npx wrangler deploy`; The current application source is available directly at the root of `main`. Changes made only on `main` do not automatically update that production deployment.
 
@@ -79,12 +81,12 @@ npm run test:devices
 
 The browser suite covers desktop Chromium, Android Chrome emulation and iPhone Safari emulation. It checks narrow layouts, separate owner and partner sessions, agreement updates, photo limits and PNG ticket downloads. Other checks cover ownership, recovery tokens, memory privacy, concurrent limits, SEO routing and encrypted backup restoration using synthetic data.
 
-Emulation does not replace real-phone checks of Photos, file pickers and native sharing. See [LAUNCH-CHECKS.md](https://github.com/Faddzi/pickadate/blob/revamp/couple-spaces/LAUNCH-CHECKS.md) and the [phone checklist](https://suratwala.in/help#phone-check).
+Emulation does not replace real-phone checks of Photos, file pickers and native sharing. See [LAUNCH-CHECKS.md](LAUNCH-CHECKS.md) and the [phone checklist](https://suratwala.in/help#phone-check).
 
 ## Remaining launch setup
 
 - **Email delivery:** Verification and password-reset flows are implemented. Live delivery still needs a verified sender and `MAIL_FROM` plus `RESEND_API_KEY`, or a supported email binding. Never commit credentials.
-- **External backups:** The encrypted workflow is installed on `main`, but remains paused until credentials, a successful manual backup and an isolated restore check are complete. See [BACKUPS.md](https://github.com/Faddzi/pickadate/blob/revamp/couple-spaces/BACKUPS.md) before enabling `BACKUPS_ENABLED`.
+- **External backups:** The encrypted workflow is installed on `main`, but remains paused until credentials, a successful manual backup and an isolated restore check are complete. See [BACKUPS.md](BACKUPS.md) before enabling `BACKUPS_ENABLED`.
 - **Physical phones:** Real Android and iPhone testing remains pending.
 - **Search Console:** Domain verification and sitemap submission remain pending. The public sitemap is [suratwala.in/sitemap.xml](https://suratwala.in/sitemap.xml).
 

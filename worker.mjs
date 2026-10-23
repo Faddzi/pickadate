@@ -2,7 +2,7 @@ import {brandAssets,assetTypes,seoRoute,seoHeaders} from './seo.mjs';
 import {photoData} from './photos.mjs';
 import {accountAPI,emailTransport,purgeAccountData} from './account-api.mjs';
 import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
-import {addressStatus,tenantName,RESERVED_NAMES} from './tenant.mjs';
+import {addressStatus,tenantName} from './tenant.mjs';
 import {randomBytes,scryptSync,timingSafeEqual,createHash} from 'node:crypto';
 export default {async fetch(request,env,ctx){
 const send=(code,data,headers={})=>new Response(JSON.stringify(data),{status:code,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',...headers}});

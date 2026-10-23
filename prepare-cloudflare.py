@@ -1,6 +1,6 @@
 """Generate the Workers adapter from the checked local API and stage public assets."""
 from pathlib import Path
-import re, shutil, json
+import re, subprocess
 root=Path(__file__).resolve().parent
 source=(root/'server.mjs').read_text(encoding='utf-8')
 schema=re.search(r'db.exec\(`(.*?)`\);',source,re.S).group(1)
@@ -49,7 +49,7 @@ prefix="""import {brandAssets,assetTypes,seoRoute,seoHeaders} from './seo.mjs';
 import {photoData} from './photos.mjs';
 import {accountAPI,emailTransport,purgeAccountData} from './account-api.mjs';
 import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
-import {addressStatus,tenantName,RESERVED_NAMES} from './tenant.mjs';
+import {addressStatus,tenantName} from './tenant.mjs';
 import {randomBytes,scryptSync,timingSafeEqual,createHash} from 'node:crypto';
 export default {async fetch(request,env,ctx){
 const send=(code,data,headers={})=>new Response(JSON.stringify(data),{status:code,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',...headers}});
@@ -82,6 +82,5 @@ if(tenant!==null){
 }
 """
 (root/'worker.mjs').write_text(prefix+helpers+'try{\n'+tenant_code+handlers+suffix,encoding='utf-8')
-public=root/'public';public.mkdir(exist_ok=True)
-for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html','favicon.svg','favicon-96.png','apple-touch-icon.png','icon-192.png','icon-512.png','share-card.png','site.webmanifest']:shutil.copyfile(root/name,public/name)
+subprocess.run(['node',str(root/'scripts'/'prepare-assets.mjs')],check=True)
 print('Prepared Workers API, D1 schema, and public assets.')

@@ -2,7 +2,7 @@
 
 ## Scope
 
-Free couple spaces at suratwala.in. No payments or subscriptions. Support and free-service/refund information are at /help and linked from the landing, account and couple pages. Public bug reports use the repository's GitHub issues; no private support inbox or response-time promise has been invented.
+Free couple spaces at suratwala.in. No payments or subscriptions. Support, privacy and free-tool information are at /help and linked from the landing, account and couple pages. Public bug reports use the repository's GitHub issues; no private support inbox or response-time promise has been invented.
 
 ## Local checks passed
 
@@ -15,7 +15,7 @@ Free couple spaces at suratwala.in. No payments or subscriptions. Support and fr
 
 ## Automated browser matrix: 9 of 9 passed
 
-Verified in GitHub Actions run https://github.com/Faddzi/pickadate/actions/runs/39959196625 at commit 1e3a8262d2925aa9d3c5a72c1ba18aab9e75ba24. All 9 tests passed in 56.7 seconds: Chromium desktop, Pixel 7 emulation in Chromium and iPhone 13 emulation in WebKit. The first browser run exposed a 320px landing-grid overflow in Chromium and WebKit; a responsive grid and artwork-size fix resolved it. Includes 320px layout checks, independent owner/partner browser contexts, counterproposal approval, canonical date/countdown data equality, owner/partner PNG downloads, photo decoding/compression, 5 MB input rejection, HEIC rejection and capacity/restore checks. GitHub Actions runs these checks from launch/checks and revamp/couple-spaces. HTML reports, traces on failures and screenshots use synthetic QA data only.
+Verified in GitHub Actions run https://github.com/Faddzi/pickadate/actions/runs/39959196625 at commit 1e3a8262d2925aa9d3c5a72c1ba18aab9e75ba24. All 9 tests passed in 56.7 seconds: Chromium desktop, Pixel 7 emulation in Chromium and iPhone 13 emulation in WebKit. The first browser run exposed a 320px landing-grid overflow in Chromium and WebKit; a responsive grid and artwork-size fix resolved it. Includes 320px layout checks, independent owner/partner browser contexts, counterproposal approval, canonical date/countdown data equality, owner/partner PNG downloads, photo decoding/compression, 5 MB input rejection, HEIC rejection and capacity/restore checks. GitHub Actions runs these checks from main, launch/checks and revamp/couple-spaces. HTML reports, traces on failures and screenshots use synthetic QA data only.
 
 Run `npm install`, `npx playwright install --with-deps chromium webkit`, then `npm run test:devices` in an environment with browser-test support. This session has no browser control tool or installed browser-test packages, so browser tests ran in GitHub Actions using the official prebuilt Playwright browser container. The initial dependency-install approach stalled and was replaced by that container. Reports, screenshots and owner/partner PNG ticket artifacts from the successful run are retained for 7 days.
 
@@ -25,6 +25,6 @@ No physical phone or separate hardware has been tested in this session. Browser 
 
 ## Backup and launch dependencies
 
-Cloudflare documents always-on D1 Time Travel with seven days on Free. BACKUPS.md records the recovery procedure. An additional encrypted external-backup workflow is prepared but is not active: it needs dedicated GitHub Actions secrets and installation on the default branch. No production export or destructive restore was performed. Verify an actual encrypted artifact and restore it to isolated D1 before relying on external backups.
+Cloudflare documents always-on D1 Time Travel with seven days on Free. BACKUPS.md records the recovery procedure. An additional encrypted external-backup workflow is prepared but is not active: it is installed on the default branch and still needs dedicated GitHub Actions secrets, a successful manual run and an isolated restore check. No production export or destructive restore was performed. Verify an actual encrypted artifact and restore it to isolated D1 before relying on external backups.
 
 Email verification/reset code exists, but email delivery is still unconfigured. Private support contact, email delivery and backup credentials remain operator setup items. Current support clearly states its public-reporting scope. Keep these limitations visible when deciding whether to launch publicly.
