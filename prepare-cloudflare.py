@@ -16,6 +16,7 @@ handlers=source[source.index(' const url=new URL'):source.index(" const file=p==
 handlers=handlers.replace("new URL(req.url,'http://localhost')","new URL(request.url)")
 handlers=handlers.replace('process.env.PUBLIC_ORIGIN||`http://${req.headers.host}`','new URL(request.url).origin')
 helpers=helpers.replace('function auth(req)','async function auth(req)').replace('function owned(req,id)','async function owned(req,id)').replace('const user=auth(req)','const user=await auth(req)')
+handlers=handlers.replace("const discovery=seoRoute(url);if(discovery){res.writeHead(discovery.status,Object.fromEntries(discovery.headers));res.end(m==='HEAD'?'':await discovery.text());return}","")
 handlers=handlers.replace('emailTransport(process.env)', 'emailTransport(env,p=>ctx.waitUntil(p))').replace('batch:accountBatch','batch:accountBatch').replace('origin:process.env.PUBLIC_ORIGIN||`http://${req.headers.host}`','origin:env.PUBLIC_ORIGIN||\"https://suratwala.in\"')
 handlers=handlers.replace('function session(id,expectedPassword)','async function session(id,expectedPassword)').replace('const id=auth(req)','const id=await auth(req)').replace('const user=auth(req)','const user=await auth(req)').replace('const s=owned(req,sm[1])','const s=await owned(req,sm[1])').replace('rate(req);','await rate(req);')
 handlers=handlers.replace("process.env.PUBLIC_ORIGIN?.startsWith('https:')","new URL(request.url).protocol==='https:'")
@@ -44,7 +45,8 @@ def adapt(text):
  return text
 handlers=handlers.replace('const s=owned(req,reviewMatch[1])','const s=await owned(req,reviewMatch[1])')
 helpers=adapt(helpers);handlers=adapt(handlers)
-prefix="""import {photoData} from './photos.mjs';
+prefix="""import {brandAssets,assetTypes,seoRoute,seoHeaders} from './seo.mjs';
+import {photoData} from './photos.mjs';
 import {accountAPI,emailTransport,purgeAccountData} from './account-api.mjs';
 import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
 import {addressStatus,tenantName,RESERVED_NAMES} from './tenant.mjs';
@@ -58,13 +60,14 @@ async function query(op,sql,...args){const statement=env.DB.prepare(sql).bind(..
 """
 suffix="""
 const file=p==='/help'?'help.html':p==='/tool'||p.startsWith('/invite/')?'tool.html':p==='/'?'index.html':p.slice(1);
-if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html'].includes(file))return send(404,{error:'Not found.'});
+if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html',...brandAssets].includes(file))return send(404,{error:'Not found.'});
 const assetURL=new URL(request.url);assetURL.pathname='/'+file;
-const response=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(response.headers);headers.set('Referrer-Policy','no-referrer');headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');headers.set('Cache-Control','no-cache');return new Response(response.body,{status:response.status,headers});
+const response=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(response.headers);headers.set('Referrer-Policy','no-referrer');headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');headers.set('Cache-Control','no-cache');for(const [key,value] of Object.entries(seoHeaders(new URL(request.url),file)))headers.set(key,value);const type=assetTypes['.'+file.split('.').pop()];if(type)headers.set('Content-Type',type);return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
 }catch(e){if(!e.status)console.error(e.message);return send(e.status||(String(e.message).includes('UNIQUE constraint failed')?409:500),{error:e.status?e.message:String(e.message).includes('UNIQUE constraint failed')?'That address or email is already in use.':'Something went wrong. Please try again.'})}
 },async scheduled(event,env,ctx){ctx.waitUntil(purgeAccountData(statements=>env.DB.batch(statements.map(([sql,...args])=>env.DB.prepare(sql).bind(...args)))))} };
 """
 tenant_code="""
+const discovery=seoRoute(new URL(request.url));if(discovery)return request.method==='HEAD'?new Response(null,{status:discovery.status,headers:discovery.headers}):discovery;
 const host=new URL(request.url).hostname,tenant=tenantName(host);
 if(tenant!==null){
  if(tenant==='www'||tenant==='pickadate')return Response.redirect('https://suratwala.in'+new URL(request.url).pathname,302);
@@ -80,5 +83,5 @@ if(tenant!==null){
 """
 (root/'worker.mjs').write_text(prefix+helpers+'try{\n'+tenant_code+handlers+suffix,encoding='utf-8')
 public=root/'public';public.mkdir(exist_ok=True)
-for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html']:shutil.copyfile(root/name,public/name)
+for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html','favicon.svg','favicon-96.png','apple-touch-icon.png','icon-192.png','icon-512.png','share-card.png','site.webmanifest']:shutil.copyfile(root/name,public/name)
 print('Prepared Workers API, D1 schema, and public assets.')

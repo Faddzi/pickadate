@@ -1,3 +1,4 @@
+import {brandAssets,assetTypes,seoRoute,seoHeaders} from './seo.mjs';
 import {photoData} from './photos.mjs';
 import {accountAPI,accountSchema,emailTransport} from './account-api.mjs';
 import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
@@ -33,9 +34,10 @@ function owned(req,id){const user=auth(req);const space=db.prepare('SELECT * FRO
 function profile(input){const p={name1:clean(input.name1,30),name2:clean(input.name2,30),message:clean(input.message),theme:['cherry','sage','rose'].includes(input.theme)?input.theme:'cherry',photo:photoData(input.photo)};if(!p.name1||!p.name2)fail('Please add both names.');return p}
 function dateDetails(input){return {...datePlan(input),revision:0}}
 async function body(req){let result='';for await(const chunk of req){result+=chunk;if(Buffer.byteLength(result)>500000)fail('That upload is too large.',413)}try{return JSON.parse(result||'{}')}catch{fail('Invalid request.')}}
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
+const mime={...assetTypes,'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8'};
 const server=http.createServer(async(req,res)=>{const send=(code,data,headers={})=>{res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY',...headers});res.end(JSON.stringify(data));return true};try{
  const url=new URL(req.url,'http://localhost'),p=url.pathname,m=req.method;
+ const discovery=seoRoute(url);if(discovery){res.writeHead(discovery.status,Object.fromEntries(discovery.headers));res.end(m==='HEAD'?'':await discovery.text());return}
  if(!['GET','HEAD'].includes(m)){const expected=process.env.PUBLIC_ORIGIN||`http://${req.headers.host}`;if(req.headers.origin!==expected)fail('Request origin not allowed.',403);if(!req.headers['content-type']?.startsWith('application/json'))fail('Expected JSON.',415)}
  const mail=emailTransport(process.env);
  const accounts=accountAPI({query:accountQuery,batch:accountBatch,auth:()=>auth(req),owned:id=>owned(req,id),body:()=>body(req),send,mail,origin:process.env.PUBLIC_ORIGIN||`http://${req.headers.host}`,ip:req.socket.remoteAddress});
@@ -57,6 +59,6 @@ const server=http.createServer(async(req,res)=>{const send=(code,data,headers={}
 
  if(p.startsWith('/api/'))return send(404,{error:'Not found.'});
  const file=p==='/help'?'help.html':p==='/tool'||p.startsWith('/invite/')?'tool.html':p==='/'?'index.html':p.slice(1);
- if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','addresses.js','flow.js','account.js','ticket.js','help.html'].includes(file))return send(404,{error:'Not found.'});res.writeHead(200,{'Content-Type':mime[path.extname(file)],'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'});res.end(m==='HEAD'?'':readFileSync(path.join(root,file)));
+ if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','addresses.js','flow.js','account.js','ticket.js','help.html',...brandAssets].includes(file))return send(404,{error:'Not found.'});res.writeHead(200,{...seoHeaders(url,file),'Content-Type':mime[path.extname(file)],'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'});res.end(m==='HEAD'?'':readFileSync(path.join(root,file)));
  }catch(e){send(e.status||(String(e.message).includes('UNIQUE constraint failed')?409:500),{error:e.status?e.message:String(e.message).includes('UNIQUE constraint failed')?'That address or email is already in use.':'Something went wrong. Please try again.'});if(!e.status)console.error(e.message)}});
 server.listen(Number(process.env.PORT)||4174,process.env.HOST||'127.0.0.1',()=>console.log(`Pick a Date tool: http://${process.env.HOST||'127.0.0.1'}:${process.env.PORT||4174}/tool`));

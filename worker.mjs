@@ -1,3 +1,4 @@
+import {brandAssets,assetTypes,seoRoute,seoHeaders} from './seo.mjs';
 import {photoData} from './photos.mjs';
 import {accountAPI,emailTransport,purgeAccountData} from './account-api.mjs';
 import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
@@ -22,6 +23,7 @@ function dateDetails(input){return {...datePlan(input),revision:0}}
 async function body(req){let text='';const reader=request.body?.getReader();if(reader){const decoder=new TextDecoder();let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>500000){await reader.cancel();fail('That upload is too large.',413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}try{return JSON.parse(text||'{}')}catch{fail('Invalid request.')}}
 try{
 
+const discovery=seoRoute(new URL(request.url));if(discovery)return request.method==='HEAD'?new Response(null,{status:discovery.status,headers:discovery.headers}):discovery;
 const host=new URL(request.url).hostname,tenant=tenantName(host);
 if(tenant!==null){
  if(tenant==='www'||tenant==='pickadate')return Response.redirect('https://suratwala.in'+new URL(request.url).pathname,302);
@@ -35,6 +37,7 @@ if(tenant!==null){
  if(pathname==='/tool')return Response.redirect('https://suratwala.in/tool',302);
 }
  const url=new URL(request.url),p=url.pathname,m=req.method;
+ 
  if(!['GET','HEAD'].includes(m)){const expected=new URL(request.url).origin;if(req.headers.origin!==expected)fail('Request origin not allowed.',403);if(!req.headers['content-type']?.startsWith('application/json'))fail('Expected JSON.',415)}
  const mail=emailTransport(env,p=>ctx.waitUntil(p));
  const accounts=accountAPI({query:accountQuery,batch:accountBatch,auth:()=>auth(req),owned:id=>owned(req,id),body:()=>body(req),send,mail,origin:new URL(request.url).origin,ip:req.socket.remoteAddress});
@@ -57,8 +60,8 @@ if(tenant!==null){
  if(p.startsWith('/api/'))return send(404,{error:'Not found.'});
 
 const file=p==='/help'?'help.html':p==='/tool'||p.startsWith('/invite/')?'tool.html':p==='/'?'index.html':p.slice(1);
-if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html'].includes(file))return send(404,{error:'Not found.'});
+if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html',...brandAssets].includes(file))return send(404,{error:'Not found.'});
 const assetURL=new URL(request.url);assetURL.pathname='/'+file;
-const response=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(response.headers);headers.set('Referrer-Policy','no-referrer');headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');headers.set('Cache-Control','no-cache');return new Response(response.body,{status:response.status,headers});
+const response=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(response.headers);headers.set('Referrer-Policy','no-referrer');headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');headers.set('Cache-Control','no-cache');for(const [key,value] of Object.entries(seoHeaders(new URL(request.url),file)))headers.set(key,value);const type=assetTypes['.'+file.split('.').pop()];if(type)headers.set('Content-Type',type);return new Response(request.method==='HEAD'?null:response.body,{status:response.status,headers});
 }catch(e){if(!e.status)console.error(e.message);return send(e.status||(String(e.message).includes('UNIQUE constraint failed')?409:500),{error:e.status?e.message:String(e.message).includes('UNIQUE constraint failed')?'That address or email is already in use.':'Something went wrong. Please try again.'})}
 },async scheduled(event,env,ctx){ctx.waitUntil(purgeAccountData(statements=>env.DB.batch(statements.map(([sql,...args])=>env.DB.prepare(sql).bind(...args)))))} };
