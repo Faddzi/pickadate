@@ -1,3 +1,10 @@
 data/
 .env
 *.sqlite*
+
+node_modules/
+playwright-report/
+test-results/
+backups/
+*.pdbak
+*.sql.enc

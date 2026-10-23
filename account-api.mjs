@@ -58,7 +58,7 @@ export function accountAPI({query,batch,auth,owned,body,send,mail,origin,ip}){
   if(action==='trash'&&m==='GET'){const rows=await query('all','SELECT memories.*,memory_trash.deleted_at FROM memories JOIN memory_trash ON memories.id=memory_trash.memory_id WHERE space_id=? ORDER BY deleted_at DESC',space.id);return send(200,{memories:rows.map(r=>({...r,details:JSON.parse(r.details)}))})}
   const memory=await query('get','SELECT id FROM memories WHERE id=? AND space_id=?',action,space.id);if(!memory)fail('Memory not found.',404);
   if(m==='DELETE'&&!match[3]){await query('run','INSERT INTO memory_trash(memory_id,deleted_at) VALUES(?,?) ON CONFLICT(memory_id) DO NOTHING',memory.id,Date.now());return send(200,{ok:true})}
-  if(m==='POST'&&match[3]==='restore'){if((await query('get','SELECT count(*) AS n FROM memories WHERE space_id=? AND id NOT IN (SELECT memory_id FROM memory_trash)',space.id)).n>=50)fail('Make room in your scrapbook before restoring this memory.');await query('run','DELETE FROM memory_trash WHERE memory_id=?',memory.id);return send(200,{ok:true})}
+  if(m==='POST'&&match[3]==='restore'){const trashed=await query('get','SELECT memory_id FROM memory_trash WHERE memory_id=?',memory.id);if(!trashed)return send(200,{ok:true});const restored=await query('get','DELETE FROM memory_trash WHERE memory_id=? AND (SELECT count(*) FROM memories WHERE space_id=? AND id NOT IN (SELECT memory_id FROM memory_trash))<50 RETURNING memory_id',memory.id,space.id);if(!restored)fail('Make room in your scrapbook before restoring this memory.');return send(200,{ok:true})}
   return null;
  }
  return {route,state,issue,cleanup};

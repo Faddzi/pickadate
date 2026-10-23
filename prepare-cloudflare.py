@@ -44,7 +44,8 @@ def adapt(text):
  return text
 handlers=handlers.replace('const s=owned(req,reviewMatch[1])','const s=await owned(req,reviewMatch[1])')
 helpers=adapt(helpers);handlers=adapt(handlers)
-prefix="""import {accountAPI,emailTransport,purgeAccountData} from './account-api.mjs';
+prefix="""import {photoData} from './photos.mjs';
+import {accountAPI,emailTransport,purgeAccountData} from './account-api.mjs';
 import {datePlan,makeReply,reviewedPlan} from './invitation-flow.mjs';
 import {addressStatus,tenantName,RESERVED_NAMES} from './tenant.mjs';
 import {randomBytes,scryptSync,timingSafeEqual,createHash} from 'node:crypto';
@@ -56,8 +57,8 @@ const accountBatch=statements=>env.DB.batch(statements.map(([sql,...args])=>env.
 async function query(op,sql,...args){const statement=env.DB.prepare(sql).bind(...args);if(op==='get')return statement.first();if(op==='all')return (await statement.all()).results;return statement.run()}
 """
 suffix="""
-const file=p==='/tool'||p.startsWith('/invite/')?'tool.html':p==='/'?'index.html':p.slice(1);
-if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js'].includes(file))return send(404,{error:'Not found.'});
+const file=p==='/help'?'help.html':p==='/tool'||p.startsWith('/invite/')?'tool.html':p==='/'?'index.html':p.slice(1);
+if(!['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html'].includes(file))return send(404,{error:'Not found.'});
 const assetURL=new URL(request.url);assetURL.pathname='/'+file;
 const response=await env.ASSETS.fetch(new Request(assetURL,request));const headers=new Headers(response.headers);headers.set('Referrer-Policy','no-referrer');headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');headers.set('Cache-Control','no-cache');return new Response(response.body,{status:response.status,headers});
 }catch(e){if(!e.status)console.error(e.message);return send(e.status||(String(e.message).includes('UNIQUE constraint failed')?409:500),{error:e.status?e.message:String(e.message).includes('UNIQUE constraint failed')?'That address or email is already in use.':'Something went wrong. Please try again.'})}
@@ -79,5 +80,5 @@ if(tenant!==null){
 """
 (root/'worker.mjs').write_text(prefix+helpers+'try{\n'+tenant_code+handlers+suffix,encoding='utf-8')
 public=root/'public';public.mkdir(exist_ok=True)
-for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js']:shutil.copyfile(root/name,public/name)
+for name in ['index.html','style.css','app.js','tool.html','tool.js','tool-next.js','tool.css','couple.html','couple.js','addresses.js','flow.js','account.js','ticket.js','help.html']:shutil.copyfile(root/name,public/name)
 print('Prepared Workers API, D1 schema, and public assets.')

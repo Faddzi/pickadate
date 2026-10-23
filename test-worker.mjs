@@ -116,3 +116,24 @@ async function concurrentReset(){const r=await worker.fetch(new Request('https:/
 assert.deepEqual((await Promise.all([concurrentReset(),concurrentReset()])).sort(),[200,400]);
 await call('/api/account/forgot',{email:'limit@example.com'},200,'');for(let n=0;n<4;n++)await call('/api/account/forgot',{email:'limit@example.com'},200,'');await call('/api/account/forgot',{email:'limit@example.com'},429,'');
 console.log('PASS: concurrent token consumption and per-address recovery rate limits');
+
+await call('/api/login',{email:'owner@example.com',password:'concurrent-new-password'},200,'');
+const tinyPNG='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j9WQAAAAASUVORK5CYII=';
+const memoryInput={title:'photo boundary',note:'a synthetic memory',day:'2026-10-23',rating:5,photo:tinyPNG};
+await call('/api/spaces/'+s.id+'/memories',memoryInput,201);
+assert.equal((await call('/api/spaces/'+s.id)).memories[0].details.photo,tinyPNG);
+for(const photo of ['data:image/png;base64,dGVzdA==',tinyPNG.replace('image/png','image/jpeg'),'data:image/svg+xml;base64,PHN2Zz4=','data:image/png;base64,ABC'])await call('/api/spaces/'+s.id+'/memories',{...memoryInput,photo},400);
+await call('/api/spaces/'+s.id+'/memories',{...memoryInput,photo:'data:image/png;base64,'+'A'.repeat(350000)},413);
+await call('/api/spaces/'+s.id,{name1:'Alex',name2:'Sam',photo:'data:image/png;base64,'+'A'.repeat(350000)},413,cookie,'PUT');
+await call('/api/spaces/'+s.id+'/memories',{...memoryInput,photo:'data:image/png;base64,'+'A'.repeat(500000)},413);
+for(let n=0;n<48;n++)await call('/api/spaces/'+s.id+'/memories',{...memoryInput,photo:''},201);
+async function saveAtCap(){const r=await worker.fetch(new Request('https://staging.example/api/spaces/'+s.id+'/memories',{method:'POST',headers:{Origin:'https://staging.example','Content-Type':'application/json',Cookie:cookie},body:JSON.stringify(memoryInput)}),env,ctx);return r.status}
+assert.deepEqual((await Promise.all([saveAtCap(),saveAtCap(),saveAtCap()])).sort(),[201,400,400]);
+let capped=await call('/api/spaces/'+s.id);assert.equal(capped.memories.length,50);
+await call('/api/spaces/'+s.id+'/memories',memoryInput,400);
+await call('/api/spaces/'+s.id+'/memories/'+capped.memories[0].id,{},200,cookie,'DELETE');
+await call('/api/spaces/'+s.id+'/memories',memoryInput,201);
+await call('/api/spaces/'+s.id+'/memories/'+capped.memories[0].id+'/restore',{},400);
+assert.equal((await call('/api/spaces/'+s.id)).memories.length,50);
+assert.equal(await (await worker.fetch(new Request('https://staging.example/help'),env,ctx)).text(),'/help.html');
+console.log('PASS: intact photo storage, invalid MIME/header/base64 rejection, compressed and request size limits, atomic 50-memory cap under concurrent saves, trash/restore capacity, help route');

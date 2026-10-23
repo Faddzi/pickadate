@@ -1,0 +1,28 @@
+name: A little bug
+description: Report a problem with Pick a Date. Reports are public.
+title: "Bug: "
+body:
+  - type: markdown
+    attributes:
+      value: "Please leave out names, emails, couple addresses, invitation links, photos, passwords and recovery links. This report is public."
+  - type: input
+    id: device
+    attributes:
+      label: Phone or computer and browser
+      placeholder: iPhone Safari, Android Chrome, desktop Firefox
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What happened?
+      description: List the steps, what you expected and what happened. No personal details.
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have removed personal details and private links.
+          required: true
