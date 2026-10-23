@@ -1,36 +1,95 @@
 # Pick a Date
 
-Static product prototype for personalised couple spaces. Open `index.html` in a browser or serve this directory with a static HTTP server.
+A free date planner for couples. Send a little invitation, leave the indecision to roulette, and keep the good bits in a photo scrapbook.
 
-Free to use, including a personalised subdomain and couple space. Includes all planner, invitation, roulette, ticket, countdown and scrapbook features, with up to 50 compressed photos.
+[Open Pick a Date](https://suratwala.in/) | [Create your space](https://suratwala.in/tool) | [Help and privacy](https://suratwala.in/help)
 
-Implemented: marketing page, personalisation, themes, local photo compression, browser-saved preview, date invitations, simulated replies, roulette with locks, countdown, PNG ticket export, and capped local scrapbook.
+![Pick a Date. A little more us.](share-card.png)
 
-This is a preview, not a production multi-tenant service. No payments are collected, no subdomains are provisioned, and no data syncs between devices. Browser storage can be cleared or reach its quota before 50 photos. Do not use it as the only copy of a memory.
+## Made for two
 
-Next: authenticated accounts, database and private object storage, tenant routing and wildcard DNS/TLS, server-side subdomain reservation, partner invite tokens and authorisation, retention/service terms, and production deployment. Never treat local browser state as payment entitlement or partner consent.
+- Your own couple address, such as `ourstory.suratwala.in`, with availability checks and reserved-name protection.
+- Both names, a cover photo, a welcome note and cherry, sage or rose themes.
+- Date invitations with activities, vibes, rules and a surprise roulette.
+- Partner replies to accept, suggest a change or request another day.
+- Owner approval of suggestions, followed by an updated ticket and shared countdown.
+- Downloadable PNG date tickets with a preview and sharing where supported.
+- A scrapbook with up to 50 active memories, photos, ratings and one-line notes.
+- Private scrapbook export, recoverable trash and restoration for 30 days.
 
+The tool is free to use.
 
-## Working application
+## What is public?
 
-Requires Node 24 or newer. Run `npm start`, then open http://127.0.0.1:4174/tool. No package installation is needed. The original marketing preview is at `/`.
+A couple address shows names, the cover photo, the welcome message and the latest invitation. Anyone who knows the address can view and reply to that invitation. Account details and scrapbook memories require the owner's sign-in.
 
-The application uses Node SQLite and stores records under `data/`, which is excluded from source control. Passwords use salted scrypt hashes. Sessions use hashed random tokens and HttpOnly, SameSite cookies. Space APIs require ownership; invitation URLs use random bearer tokens and let their holders view and reply only to that invitation. Mutation routes verify Origin. Authentication and public replies have a basic in-process rate limiter.
+Couple pages, invitation pages and account screens carry search-indexing exclusions. These directives do not make shared links private. Keep downloaded scrapbook exports somewhere private too.
 
-Implemented server-backed flows: register/sign in/sign out, create multiple couple spaces with unique slugs, create invitations, open private reply links on another browser/device, accept/counter/reschedule, refresh owner replies, and save up to 50 scrapbook memories with compressed photos. Profiles include names, note, cover photo and theme. Preview clients are not an entitlement system.
+Photos can be JPG, PNG or WebP, up to 5 MB before browser compression. HEIC must be converted first. Save a separate copy of memories that matter to you.
 
-Local-only default binding is 127.0.0.1. For deployment configure PORT, HOST, PUBLIC_ORIGIN (exact HTTPS origin), and optional PICKADATE_DB. Use persistent disk and back up the SQLite database. Public deployment still requires TLS, tested hosting configuration, account recovery/email verification, production rate limiting, privacy/service terms, deletion/export controls, subdomain routing. The tool is free to use. Invitation times use the viewer's local timezone; shared timezone selection remains to be implemented.
+## Run locally
 
-Validation: JavaScript syntax checks and HTTP integration checks for registration, login/logout, durable records, cross-account access denial, public partner replies, scrapbook saving and rejected cross-origin mutations.
+Use Node.js 24 or newer. The application itself has no npm runtime dependencies.
 
+```sh
+npm start
+```
 
-Latest workflow: the preview carries names, email, address, theme, note and photo into account onboarding. Saved spaces now offer profile editing, cover-photo display, copy-link controls and canvas PNG date-ticket export. Cover photos and themes also appear on partner invitation pages.
+Open [http://127.0.0.1:4174](http://127.0.0.1:4174) for the landing page and browser-local preview, or [http://127.0.0.1:4174/tool](http://127.0.0.1:4174/tool) for the account-backed app.
 
+The local server uses SQLite under `data/`, excluded from Git. Local binding defaults to `127.0.0.1`. Optional settings are `PORT`, `HOST`, `PUBLIC_ORIGIN` and `PICKADATE_DB`. The browser-local preview is separate from saved account data.
 
-Cloudflare deployment: use worker.mjs with wrangler.jsonc and the public assets directory. Run python prepare-cloudflare.py after source edits, then node test-worker.mjs. D1 staging database is provisioned with schema.sql. Configure builds from revamp/couple-spaces with no build command and npx wrangler deploy as the deploy command. The intended main domain is suratwala.in; customer addresses will be first-level subdomains. Existing live DNS has not been changed.
+## How it is built
 
+| Part | Implementation |
+| --- | --- |
+| Interface | HTML, CSS and browser JavaScript |
+| Local API | Node.js HTTP server and SQLite |
+| Hosted API | Cloudflare Worker and D1 |
+| Couple addresses | Wildcard DNS and tenant routing |
+| Accounts | Salted scrypt password hashes, hashed session tokens and HttpOnly cookies |
+| Invitations | Revision checks, owner approval, IANA timezones and a canonical UTC start time |
+| Photos | Browser compression and server-side format and size validation |
+| Discovery | Canonical URLs, sitemap, structured data and branded sharing previews |
 
-Couple subdomains: wildcard proxied DNS and the *.suratwala.in/* Worker route serve couple.html for each claimed slug. Public /api/couple exposes only names, cover, welcome, theme and latest invitation; scrapbook, account email, owner ID and older plans remain private. Latest invitations are shared by the couple address. Owner APIs remain on the main domain. Invitation tokens cannot be used on another couple hostname. Addresses are 3 to 35 characters, normalised to lowercase and checked against reserved names. Availability is advisory; the unique database constraint remains authoritative under concurrent requests. Main www and legacy pickadate hosts redirect to the main site.
+`server.mjs` is the local API source. `prepare-cloudflare.py` generates `worker.mjs`, `schema.sql` and the `public/` asset copies. Regenerate after changing API source or public assets:
 
+```sh
+python prepare-cloudflare.py
+```
 
-Invitation agreement flow: partners can accept the current plan or suggest structured changes to day, time, activity, vibe and rule. Suggestions await owner review; owner approval updates the canonical plan and locks the date. Declining restores the original plan and prior locked/proposed status. JSON revision counters plus atomic conditional updates reject stale replies and conflicting decisions. No database column migration is needed. New plans store an IANA timezone and a server-computed startsAt timestamp; legacy plans use Asia/Kolkata. Both ticket exports fetch the latest plan, and open guest/owner views poll for changes every eight seconds while countdowns tick locally each second.
+Production runs at **suratwala.in**. The Cloudflare build currently deploys **`revamp/couple-spaces`** using `npx wrangler deploy`; `main` also contains the current app for the repository's default view. Changes made only on `main` do not automatically update that production deployment.
+
+Apply database changes deliberately after reviewing their effect on existing records. Never overwrite the live database as part of a test.
+
+## Checks
+
+```sh
+npm run check
+npm test
+```
+
+Browser checks require the development dependencies and Playwright browsers:
+
+```sh
+npm install
+npx playwright install
+npm run test:devices
+```
+
+The browser suite covers desktop Chromium, Android Chrome emulation and iPhone Safari emulation. It checks narrow layouts, separate owner and partner sessions, agreement updates, photo limits and PNG ticket downloads. Other checks cover ownership, recovery tokens, memory privacy, concurrent limits, SEO routing and encrypted backup restoration using synthetic data.
+
+Emulation does not replace real-phone checks of Photos, file pickers and native sharing. See [LAUNCH-CHECKS.md](LAUNCH-CHECKS.md) and the [phone checklist](https://suratwala.in/help#phone-check).
+
+## Remaining launch setup
+
+- **Email delivery:** Verification and password-reset flows are implemented. Live delivery still needs a verified sender and `MAIL_FROM` plus `RESEND_API_KEY`, or a supported email binding. Never commit credentials.
+- **External backups:** The encrypted workflow is installed on `main`, but remains paused until credentials, a successful manual backup and an isolated restore check are complete. See [BACKUPS.md](BACKUPS.md) before enabling `BACKUPS_ENABLED`.
+- **Physical phones:** Real Android and iPhone testing remains pending.
+- **Search Console:** Domain verification and sitemap submission remain pending. The public sitemap is [suratwala.in/sitemap.xml](https://suratwala.in/sitemap.xml).
+
+## Help and bug reports
+
+Read the [help page](https://suratwala.in/help) or [report a bug](https://github.com/Faddzi/pickadate/issues/new).
+
+GitHub reports are public. Include your browser, device and reproduction steps, but leave out personal names, email addresses, couple addresses, invitation or recovery links, photos and passwords.
