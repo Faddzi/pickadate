@@ -1,0 +1,17 @@
+{
+  "name": "pickadate",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs && node --check worker.mjs && node --check account-api.mjs && node --check account.js && node --check flow.js && node --check tool-next.js && node --check tool.js && node --check app.js && node --check ticket.js && node --check photos.mjs && node --check scripts/backup.mjs && node --check seo.mjs",
+    "test": "node test-worker.mjs && node test-backup.mjs && node test-ticket.mjs && node test-seo.mjs",
+    "test:devices": "playwright test"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

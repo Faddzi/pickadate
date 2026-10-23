@@ -2,7 +2,7 @@
 
 A free date planner for couples. Send a little invitation, leave the indecision to roulette, and keep the good bits in a photo scrapbook.
 
-[Open Pick a Date](https://suratwala.in/) | [Browse current app source](https://github.com/Faddzi/pickadate/tree/revamp/couple-spaces) | [Create your space](https://suratwala.in/tool) | [Help and privacy](https://suratwala.in/help)
+[Open Pick a Date](https://suratwala.in/) | [Browse current app source](https://github.com/Faddzi/pickadate/tree/main) | [Create your space](https://suratwala.in/tool) | [Help and privacy](https://suratwala.in/help)
 
 ![Pick a Date. A little more us.](https://suratwala.in/share-card.png)
 
@@ -58,7 +58,7 @@ The local server uses SQLite under `data/`, excluded from Git. Local binding def
 python prepare-cloudflare.py
 ```
 
-Production runs at **suratwala.in**. The Cloudflare build currently deploys **`revamp/couple-spaces`** using `npx wrangler deploy`; `main` shows this project overview; the current app source is on `revamp/couple-spaces`. Changes made only on `main` do not automatically update that production deployment.
+Production runs at **suratwala.in**. The Cloudflare build currently deploys **`revamp/couple-spaces`** using `npx wrangler deploy`; The current application source is available directly at the root of `main`. Changes made only on `main` do not automatically update that production deployment.
 
 Apply database changes deliberately after reviewing their effect on existing records. Never overwrite the live database as part of a test.
 
