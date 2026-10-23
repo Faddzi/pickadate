@@ -15,6 +15,8 @@ assert.match(await (await get('/robots.txt')).text(),/Sitemap: https:\/\/suratwa
 assert.ok(!(await (await get('/robots.txt','ourstory.suratwala.in')).text()).includes('Sitemap:'));
 for(const asset of brandAssets){const r=await get('/'+asset);assert.equal(r.status,200,asset);assert.ok(r.headers.get('Content-Type'),asset);assert.equal((await get('/'+asset,'suratwala.in','HEAD')).body,null)}
 const html=readFileSync('index.html','utf8');assert.ok(html.includes('rel="canonical" href="https://suratwala.in/"'));assert.ok(html.includes('https://suratwala.in/share-card.png'));
+assert.equal((html.match(/<h1\b/g)||[]).length,1,'Homepage must have exactly one H1, including hidden previews');
+assert.ok(!/<h[1-6]\b[^>]*>\s*<\/h[1-6]>/.test(html),'Headings must not be empty');
 const data=JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);assert.equal(data['@graph'][1].isAccessibleForFree,true);
 for(const name of ['favicon-96.png','apple-touch-icon.png','icon-192.png','icon-512.png','share-card.png']){const b=readFileSync(name);assert.equal(b.subarray(1,4).toString(),'PNG');if(name==='share-card.png'){assert.equal(b.readUInt32BE(16),1200);assert.equal(b.readUInt32BE(20),630)}}
 console.log('PASS: public discovery, private noindex, canonical redirects, tenant sitemap isolation, icon MIME/HEAD, structured data and PNG dimensions');
