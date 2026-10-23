@@ -13,11 +13,11 @@ Free couple spaces at suratwala.in. No payments or subscriptions. Support and fr
 - Ticket text wraps unbroken strings and grows the image height to retain the footer. Timezone and agreed changes appear once. A PNG preview with a direct save link and optional native share control supports phone saving.
 - Encrypted SQL backup and restore into a fresh in-memory SQLite database. Wrong keys and modified archives are rejected. Integrity, references and inline photo preservation pass. This is a synthetic drill, not a production restore.
 
-## Automated browser matrix
+## Automated browser matrix: 9 of 9 passed
 
-Prepared in tests/launch.spec.mjs with Chromium desktop, Pixel 7 emulation in Chromium and iPhone 13 emulation in WebKit. Includes 320px layout checks, independent owner/partner browser contexts, counterproposal approval, canonical date/countdown data equality, owner/partner PNG downloads, photo decoding/compression, 5 MB input rejection, HEIC rejection and capacity/restore checks. GitHub Actions runs these checks from launch/checks and revamp/couple-spaces. HTML reports, traces on failures and screenshots use synthetic QA data only.
+Verified in GitHub Actions run https://github.com/Faddzi/pickadate/actions/runs/39959196625 at commit 1e3a8262d2925aa9d3c5a72c1ba18aab9e75ba24. All 9 tests passed in 56.7 seconds: Chromium desktop, Pixel 7 emulation in Chromium and iPhone 13 emulation in WebKit. The first browser run exposed a 320px landing-grid overflow in Chromium and WebKit; a responsive grid and artwork-size fix resolved it. Includes 320px layout checks, independent owner/partner browser contexts, counterproposal approval, canonical date/countdown data equality, owner/partner PNG downloads, photo decoding/compression, 5 MB input rejection, HEIC rejection and capacity/restore checks. GitHub Actions runs these checks from launch/checks and revamp/couple-spaces. HTML reports, traces on failures and screenshots use synthetic QA data only.
 
-Run `npm install`, `npx playwright install --with-deps chromium webkit`, then `npm run test:devices` in an environment with browser-test support. This session has no browser control tool or installed browser-test packages, so browser tests run in GitHub Actions. Check its actual result before marking this matrix passed.
+Run `npm install`, `npx playwright install --with-deps chromium webkit`, then `npm run test:devices` in an environment with browser-test support. This session has no browser control tool or installed browser-test packages, so browser tests ran in GitHub Actions using the official prebuilt Playwright browser container. The initial dependency-install approach stalled and was replaced by that container. Reports, screenshots and owner/partner PNG ticket artifacts from the successful run are retained for 7 days.
 
 ## Physical-device checks still required
 
