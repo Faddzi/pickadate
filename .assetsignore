@@ -1,0 +1,23 @@
+# Upload only these root browser assets. Everything else stays private.
+/*
+!/account.js
+!/addresses.js
+!/app.js
+!/apple-touch-icon.png
+!/couple.html
+!/couple.js
+!/favicon-96.png
+!/favicon.svg
+!/flow.js
+!/help.html
+!/icon-192.png
+!/icon-512.png
+!/index.html
+!/share-card.png
+!/site.webmanifest
+!/style.css
+!/ticket.js
+!/tool-next.js
+!/tool.css
+!/tool.html
+!/tool.js

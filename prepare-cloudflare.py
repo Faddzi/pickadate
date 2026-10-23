@@ -1,6 +1,6 @@
 """Generate the Workers adapter from the checked local API and stage public assets."""
 from pathlib import Path
-import re, subprocess
+import re
 root=Path(__file__).resolve().parent
 source=(root/'server.mjs').read_text(encoding='utf-8')
 schema=re.search(r'db.exec\(`(.*?)`\);',source,re.S).group(1)
@@ -82,5 +82,4 @@ if(tenant!==null){
 }
 """
 (root/'worker.mjs').write_text(prefix+helpers+'try{\n'+tenant_code+handlers+suffix,encoding='utf-8')
-subprocess.run(['node',str(root/'scripts'/'prepare-assets.mjs')],check=True)
-print('Prepared Workers API, D1 schema, and public assets.')
+print('Prepared Workers API and D1 schema. Browser assets are served from root.')

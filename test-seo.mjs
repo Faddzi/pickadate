@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {readFileSync,readdirSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import worker from './worker.mjs';
 import {brandAssets} from './seo.mjs';
 const env={ASSETS:{fetch:async request=>new Response(new URL(request.url).pathname)},DB:{prepare(){return {bind(){return this},async first(){return {id:'synthetic',slug:'ourstory',profile:'{}'}}}}}};
@@ -14,9 +14,12 @@ assert.equal((await get('/sitemap.xml','ourstory.suratwala.in')).status,404);
 assert.match(await (await get('/robots.txt')).text(),/Sitemap: https:\/\/suratwala.in\/sitemap.xml/);
 assert.ok(!(await (await get('/robots.txt','ourstory.suratwala.in')).text()).includes('Sitemap:'));
 for(const asset of brandAssets){const r=await get('/'+asset);assert.equal(r.status,200,asset);assert.ok(r.headers.get('Content-Type'),asset);assert.equal((await get('/'+asset,'suratwala.in','HEAD')).body,null)}
-const generated=readdirSync('public');
-for(const file of ['server.mjs','worker.mjs','schema.sql','README.md','.env'])assert.ok(!generated.includes(file),'Private source must not be staged: '+file);
-for(const file of generated)assert.deepEqual(readFileSync('public/'+file),readFileSync(file),'Generated asset differs from root source: '+file);
+const rules=readFileSync('.assetsignore','utf8').split(/\r?\n/).filter(x=>x&&!x.startsWith('#'));
+assert.equal(rules[0],'/*','Asset upload must exclude root files and directories by default');
+assert.ok(rules.slice(1).every(x=>/^!\/[a-z0-9.-]+$/.test(x)),'Only exact root filenames may be allowed');
+const publicFiles=rules.slice(1).map(x=>x.slice(2));
+for(const file of ['server.mjs','worker.mjs','schema.sql','README.md','.env'])assert.ok(!publicFiles.includes(file),'Private source must not be uploaded: '+file);
+for(const file of [...brandAssets,'index.html','tool.html','couple.html','help.html','style.css','tool.css','app.js','tool.js','flow.js','account.js','addresses.js','tool-next.js','couple.js','ticket.js'])assert.ok(publicFiles.includes(file),'Missing public asset: '+file);
 const html=readFileSync('index.html','utf8');assert.ok(html.includes('rel="canonical" href="https://suratwala.in/"'));assert.ok(html.includes('https://suratwala.in/share-card.png'));
 assert.equal((html.match(/<h1\b/g)||[]).length,1,'Homepage must have exactly one H1, including hidden previews');
 assert.ok(!/<h[1-6]\b[^>]*>\s*<\/h[1-6]>/.test(html),'Headings must not be empty');

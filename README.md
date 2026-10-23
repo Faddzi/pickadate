@@ -58,7 +58,7 @@ The local server uses SQLite under `data/`, excluded from Git. Local binding def
 python prepare-cloudflare.py
 ```
 
-The editable HTML, CSS, JavaScript and images stay at the repository root. `public/` is ignored deployment output, generated from those sources by `npm run prepare`. Both npm installation and Wrangler deployment run this preparation automatically. To refresh assets without regenerating the API, run `npm run prepare`.
+The HTML, CSS, JavaScript and images are served directly from the repository root. `.assetsignore` excludes everything by default and allows only the named browser assets. Backend source, database files, credentials, tests and documentation are excluded from asset uploads. There is no duplicated `public/` directory or asset-copy build step.
 
 Production runs at **suratwala.in**. The Cloudflare build currently deploys **`revamp/couple-spaces`** using `npx wrangler deploy`; The current application source is available directly at the root of `main`. Changes made only on `main` do not automatically update that production deployment.
 

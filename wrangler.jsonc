@@ -6,7 +6,7 @@
     "nodejs_compat"
   ],
   "assets": {
-    "directory": "./public",
+    "directory": ".",
     "binding": "ASSETS",
     "run_worker_first": true,
     "html_handling": "none"
@@ -33,8 +33,5 @@
     "crons": [
       "0 3 * * *"
     ]
-  },
-  "build": {
-    "command": "node scripts/prepare-assets.mjs"
   }
 }

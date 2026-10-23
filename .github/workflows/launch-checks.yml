@@ -21,7 +21,6 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --ignore-scripts --no-audit --no-fund
-      - run: npm run prepare
       - run: npm run check
       - run: npm test
       - run: npx playwright test
