@@ -10,6 +10,9 @@ jobs:
   launch:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,10 +21,8 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --ignore-scripts --no-audit --no-fund
-      - run: python3 prepare-cloudflare.py
       - run: npm run check
       - run: npm test
-      - run: npx playwright install --with-deps chromium webkit
       - run: npx playwright test
       - uses: actions/upload-artifact@v4
         if: always()
