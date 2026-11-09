@@ -23,6 +23,8 @@ function dateDetails(input){return {...datePlan(input),revision:0}}
 async function body(req){let text='';const reader=request.body?.getReader();if(reader){const decoder=new TextDecoder();let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>500000){await reader.cancel();fail('That upload is too large.',413)}text+=decoder.decode(value,{stream:true})}text+=decoder.decode()}try{return JSON.parse(text||'{}')}catch{fail('Invalid request.')}}
 try{
 
+const siteURL=new URL(request.url);
+if(siteURL.hostname==='suratwala.in'||siteURL.hostname==='www.suratwala.in')return Response.redirect('https://faddzi.com'+siteURL.pathname+siteURL.search,301);
 const discovery=seoRoute(new URL(request.url));if(discovery)return request.method==='HEAD'?new Response(null,{status:discovery.status,headers:discovery.headers}):discovery;
 const host=new URL(request.url).hostname,tenant=tenantName(host);
 if(tenant!==null){
