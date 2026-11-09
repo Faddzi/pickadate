@@ -4,16 +4,15 @@ import worker from './worker.mjs';
 import {brandAssets} from './seo.mjs';
 const env={ASSETS:{fetch:async request=>new Response(new URL(request.url).pathname)},DB:{prepare(){return {bind(){return this},async first(){return {id:'synthetic',slug:'ourstory',profile:'{}'}}}}}};
 const get=(path,host='suratwala.in',method='GET')=>worker.fetch(new Request('https://'+host+path,{method}),env,{waitUntil(){}});
-for(const path of ['/','/help'])assert.match((await get(path)).headers.get('X-Robots-Tag'),/^index, follow/);
-for(const path of ['/tool','/invite/'+'a'.repeat(48),'/tool.html','/couple.html'])assert.match((await get(path)).headers.get('X-Robots-Tag'),/^noindex/);
+for(const path of ['/','/help','/tool','/sitemap.xml'])assert.equal((await get(path)).status,301);
+assert.equal((await get('/help?source=test')).headers.get('Location'),'https://faddzi.com/help?source=test');
+assert.equal((await get('/','www.suratwala.in')).headers.get('Location'),'https://faddzi.com/');
 assert.match((await get('/','ourstory.suratwala.in')).headers.get('X-Robots-Tag'),/^noindex/);
 assert.match((await get('/','example.workers.dev')).headers.get('X-Robots-Tag'),/^noindex/);
-for(const [from,to] of [['/index.html','/'],['/help.html','/help']]){const r=await get(from+'?source=test');assert.equal(r.status,308);assert.equal(r.headers.get('Location'),'https://suratwala.in'+to+'?source=test')}
-const sitemap=await (await get('/sitemap.xml')).text();assert.equal((sitemap.match(/<loc>/g)||[]).length,2);assert.ok(!/tool|invite|ourstory/.test(sitemap));
 assert.equal((await get('/sitemap.xml','ourstory.suratwala.in')).status,404);
-assert.match(await (await get('/robots.txt')).text(),/Sitemap: https:\/\/suratwala.in\/sitemap.xml/);
+assert.equal((await get('/robots.txt')).status,301);
 assert.ok(!(await (await get('/robots.txt','ourstory.suratwala.in')).text()).includes('Sitemap:'));
-for(const asset of brandAssets){const r=await get('/'+asset);assert.equal(r.status,200,asset);assert.ok(r.headers.get('Content-Type'),asset);assert.equal((await get('/'+asset,'suratwala.in','HEAD')).body,null)}
+for(const asset of brandAssets){const r=await get('/'+asset,'example.workers.dev');assert.equal(r.status,200,asset);assert.ok(r.headers.get('Content-Type'),asset);assert.equal((await get('/'+asset,'example.workers.dev','HEAD')).body,null)}
 const rules=readFileSync('.assetsignore','utf8').split(/\r?\n/).filter(x=>x&&!x.startsWith('#'));
 assert.equal(rules[0],'/*','Asset upload must exclude root files and directories by default');
 assert.ok(rules.slice(1).every(x=>/^!\/[a-z0-9.-]+$/.test(x)),'Only exact root filenames may be allowed');
